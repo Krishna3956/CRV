@@ -12,13 +12,24 @@
  * supplied by the operator for the endpoint; it is never written to the report
  * or error output.
  */
+import { existsSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import process from "node:process";
-import { Client } from "../packages/typescript-sdk/node_modules/@modelcontextprotocol/sdk/dist/esm/client/index.js";
-import { StreamableHTTPClientTransport } from "../packages/typescript-sdk/node_modules/@modelcontextprotocol/sdk/dist/esm/client/streamableHttp.js";
-import { SSEClientTransport } from "../packages/typescript-sdk/node_modules/@modelcontextprotocol/sdk/dist/esm/client/sse.js";
 import { TrackMCPClientAdapter } from "../packages/typescript-sdk/dist/client-adapter.js";
+
+// The SDK adapter resolves the MCP protocol package from its own package
+// boundary. Reuse that same install when it exists (for clean app installs,
+// the root dependency is the fallback) so instanceof checks remain valid even
+// when the SDK has been installed independently by a package consumer gate.
+const sdkNodeModules = new URL("../packages/typescript-sdk/node_modules/@modelcontextprotocol/sdk/dist/esm/client/", import.meta.url);
+const rootNodeModules = new URL("../node_modules/@modelcontextprotocol/sdk/dist/esm/client/", import.meta.url);
+const protocolClientBase = existsSync(new URL("index.js", sdkNodeModules)) ? sdkNodeModules : rootNodeModules;
+const [{ Client }, { StreamableHTTPClientTransport }, { SSEClientTransport }] = await Promise.all([
+  import(new URL("index.js", protocolClientBase).href),
+  import(new URL("streamableHttp.js", protocolClientBase).href),
+  import(new URL("sse.js", protocolClientBase).href),
+]);
 
 const confirmation = "I_UNDERSTAND_CUSTOMER_ENDPOINT_UAT";
 const endpointValue = process.env.TRACKMCP_CUSTOMER_ENDPOINT_UAT_URL || "";

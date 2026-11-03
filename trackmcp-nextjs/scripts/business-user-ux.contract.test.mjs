@@ -1,0 +1,127 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import test from "node:test";
+
+const dashboard = await readFile(new URL("../src/components/dashboard/DashboardApp.tsx", import.meta.url), "utf8");
+const dashboardPage = await readFile(new URL("../src/app/dashboard/page.tsx", import.meta.url), "utf8");
+const auth = await readFile(new URL("../src/app/signin/page.tsx", import.meta.url), "utf8");
+const oauth = await readFile(new URL("../src/components/OAuthButtons.tsx", import.meta.url), "utf8");
+const apiDocs = await readFile(new URL("../src/app/docs/api/page.tsx", import.meta.url), "utf8");
+const target = await readFile(new URL("../../docs/FOUNDER-OS-BUSINESS-USER-UX-TARGET.md", import.meta.url), "utf8");
+const strategy = await readFile(new URL("../../docs/FOUNDER-OS-BUSINESS-USER-UX-STRATEGY.md", import.meta.url), "utf8");
+const research = await readFile(new URL("../../docs/FOUNDER-OS-BUSINESS-USER-UX-RESEARCH.md", import.meta.url), "utf8");
+const queue = await readFile(new URL("../../docs/FOUNDER-OS-BUSINESS-USER-UX-WORK-QUEUE.md", import.meta.url), "utf8");
+const uat = await readFile(new URL("../../docs/FOUNDER-OS-BUSINESS-USER-UAT-SCRIPT.md", import.meta.url), "utf8");
+
+test("new-user setup explains the business outcome before technical detail", () => {
+  assert.doesNotMatch(auth, /Create your account\. Next, a technical teammate can connect one server/);
+  assert.match(auth, /By continuing, you agree to the/);
+  assert.match(dashboard, /What you will see/);
+  assert.match(dashboard, /Connect one server to start filling the dashboard/);
+  assert.match(dashboard, /After setup/);
+  assert.match(dashboard, /One real event unlocks adoption, work, outcomes, and issue views/);
+  assert.match(dashboard, /Create a key, connect one server, make one tool call, then refresh/);
+  assert.match(dashboard, /onOpenOverview=\{\(\) => goTo\("overview"\)\}/);
+  assert.match(dashboard, /Open Overview/);
+  assert.match(target, /The user is told what will appear after the first event/);
+  assert.match(dashboard, /const setupSteps = !workspaceId/);
+  assert.match(dashboard, /Create a workspace.*Keep your server connections and analytics together/);
+});
+
+test("activated-user dashboard is organized around business questions", () => {
+  for (const phrase of [
+    "who is showing up",
+    "what are they trying to do",
+    "did it work",
+    "what needs attention",
+  ]) assert.match(dashboard, new RegExp(phrase));
+  assert.match(strategy, /Every top-level page must answer one question/);
+  assert.match(strategy, /Technical detail belongs in/);
+  assert.match(dashboard, /data-range-summary/);
+  assert.match(dashboard, /\{"Showing " \+ selectedLabel\.toLowerCase\(\)\}/);
+  assert.match(dashboard, /View daily values as a table/);
+  assert.match(dashboard, /Daily observed work, events, calls, and errors/);
+  assert.match(dashboard, /View weekly account values as a table/);
+  assert.match(dashboard, /View feature trend values as a table/);
+  assert.match(dashboard, /View outcome trend values as a table/);
+  assert.match(dashboard, /View resource and prompt trend values as a table/);
+  assert.match(dashboard, /View journey reach as a table/);
+  assert.match(dashboard, /No comparable prior-period activity/);
+  assert.match(dashboard, /Technical protocol evidence/);
+  assert.match(dashboard, /Optional detail for engineering teams/);
+  assert.match(dashboard, /Detailed capability inventory/);
+  assert.match(dashboard, /Optional detail for product and engineering teams/);
+  assert.match(dashboard, /Detailed resource and prompt evidence/);
+  assert.match(dashboard, /label="Feature activity, previous period"/);
+  assert.match(dashboard, /label="Error rate"/);
+  assert.match(dashboard, /Recommended next step/);
+  assert.match(dashboard, /Connect one server to begin/);
+  assert.match(dashboard, /Review the signals that need attention/);
+  assert.doesNotMatch(dashboard, /privacy-safe account signals/);
+  assert.doesNotMatch(dashboard, /Active account signals/);
+  assert.match(dashboard, /Loading your selected dashboard view/);
+  assert.match(dashboard, /Your live data and Example data stay separate/);
+  assert.doesNotMatch(dashboard, /Open Trace Explorer/);
+  assert.match(dashboard, /Observed session \{index \+ 1\}/);
+  assert.match(dashboard, /Evidence link/);
+  assert.match(dashboard, /Linked to session/);
+  assert.match(dashboard, /Open evidence/);
+});
+
+test("customer-facing docs use TrackMCP product language", () => {
+  assert.match(apiDocs, /Versioned TrackMCP analytics reads/);
+  assert.match(apiDocs, /the TrackMCP dashboard/);
+  assert.doesNotMatch(apiDocs, /Founder OS/);
+});
+
+test("first-time authentication controls expose clear interaction affordances", () => {
+  assert.match(auth, /Create account/);
+  assert.match(auth, /cursor-pointer items-center justify-center gap-2 rounded-lg bg-ink/);
+  assert.match(auth, /disabled:cursor-not-allowed/);
+  assert.match(auth, /focus-visible:ring-2 focus-visible:ring-brand/);
+  assert.match(auth, /button:not\(:disabled\), a \{ cursor: pointer; \}/);
+  assert.match(auth, /button:focus-visible, a:focus-visible/);
+  assert.match(oauth, /cursor-pointer items-center justify-center gap-2/);
+  assert.match(oauth, /Loading sign-in options/);
+  assert.match(dashboardPage, /href="\/signin" className="inline-flex cursor-pointer rounded-lg bg-ink/);
+  assert.match(dashboardPage, /focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2">Sign in to continue/);
+});
+
+test("uncertainty and technical evidence remain explicit", () => {
+  assert.match(dashboard, /Completion appears only when your server reports it/);
+  assert.match(dashboard, /Why this signal is shown/);
+  assert.match(dashboard, /Show technical rule details/);
+  assert.match(dashboard, /Unknown \/ unresolved/);
+  assert.match(dashboard, /not counted as success or failure/);
+  assert.doesNotMatch(dashboard, /Tasks that stop, error, or lack a reported outcome/);
+  assert.match(target, /Do not infer abandonment or completion from a missing event/);
+});
+
+test("research principles are translated into TrackMCP decisions", () => {
+  assert.match(research, /PostHog/);
+  assert.match(research, /Amplitude/);
+  assert.match(research, /Progressive disclosure/);
+  assert.match(research, /Do not add period comparisons/);
+  assert.match(research, /Source-to-change mapping/);
+  assert.match(research, /curated, not like a chart catalog/);
+  assert.match(research, /Use color and chart form to encode meaning sparingly/);
+  assert.match(research, /Copy is part of the product's measurement contract/);
+  assert.match(research, /Product marketing should align the product story/);
+  assert.match(queue, /Research PostHog, Amplitude, GA4/);
+});
+
+test("the work queue records this UX slice and its remaining scope", () => {
+  assert.match(queue, /\[x\] ✅ Add business-question orientation/);
+  assert.match(queue, /\[x\] ✅ Keep issue evidence/);
+  assert.match(queue, /Slice-by-slice follow-up/);
+  assert.match(queue, /No formula or read-model changes without metric-contract review/);
+});
+
+test("the business-user UAT script is executable and has a safety threshold", () => {
+  assert.match(uat, /Do not coach the participant/);
+  assert.match(uat, /My data.*workspace activity/);
+  assert.match(uat, /Example data.*illustrative/);
+  assert.match(uat, /Evidence details are a drill-down/);
+  assert.match(uat, /six of the eight Journey B actions/);
+  assert.match(uat, /secret-handling request is a release\s+blocker/);
+});

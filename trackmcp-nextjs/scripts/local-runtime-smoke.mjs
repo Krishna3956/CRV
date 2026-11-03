@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const baseUrl = process.env.TRACKMCP_SMOKE_BASE_URL || "http://localhost:3000";
+const expectUnavailableToolSitemap = process.env.TRACKMCP_EXPECT_UNAVAILABLE_TOOL_SITEMAP === "1";
 const publicRoutes = [
   "/",
   "/docs",
@@ -46,6 +47,9 @@ async function check(path, expectedStatus) {
   if (response.status !== expectedStatus) {
     throw new Error(`${path}: expected ${expectedStatus}, received ${response.status}`);
   }
+  if (path === "/tool-sitemap.xml" && expectedStatus === 503 && response.headers.get("retry-after") !== "300") {
+    throw new Error(`${path}: fail-closed response must include Retry-After: 300`);
+  }
   if (!path.startsWith("/api/")) {
     for (const [name, expected] of Object.entries(requiredSecurityHeaders)) {
       if (response.headers.get(name) !== expected) throw new Error(`${path}: missing or incorrect ${name} header`);
@@ -54,7 +58,10 @@ async function check(path, expectedStatus) {
   return response.status;
 }
 
-for (const path of publicRoutes) await check(path, 200);
+for (const path of publicRoutes) {
+  const expectedStatus = path === "/tool-sitemap.xml" && expectUnavailableToolSitemap ? 503 : 200;
+  await check(path, expectedStatus);
+}
 for (const [path, status] of expectedApiStatuses) await check(path, status);
 
-console.log(`Local runtime smoke passed: ${publicRoutes.length} public routes and ${expectedApiStatuses.size} protected/API checks at ${baseUrl}`);
+console.log(`Local runtime smoke passed: ${publicRoutes.length} public routes and ${expectedApiStatuses.size} protected/API checks at ${baseUrl}${expectUnavailableToolSitemap ? " (tool sitemap fail-closed mode)" : ""}`);

@@ -1024,7 +1024,7 @@ export function DashboardMock() {
                 <div>
                   <p className="text-[12px] font-medium uppercase tracking-[0.08em] text-faint">Setup</p>
                   <h3 className="mt-1 text-[20px] font-semibold tracking-[-0.02em] text-ink">Connect your server</h3>
-                  <p className="mt-1 max-w-[52ch] text-[12px] leading-relaxed text-muted">Example data follows the same setup path as the product: install the SDK, connect a scoped key, and verify the first accepted event.</p>
+                  <p className="mt-1 max-w-[52ch] text-[12px] leading-relaxed text-muted">Example data follows the same setup path as the product: install the SDK, connect a connection key, and verify the first accepted event.</p>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-3">
                   {[

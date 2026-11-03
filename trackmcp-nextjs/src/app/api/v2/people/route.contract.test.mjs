@@ -17,4 +17,7 @@ test("versioned people route refuses to claim unique identities", async () => {
   assert.match(handlers, /who_is_using_it/);
   assert.match(handlers, /complete, privacy-safe People read model/);
   assert.match(handlers, /createAnalyticsHandler/);
+  assert.match(handlers, /boundedNullableInt/);
+  assert.match(handlers, /new_accounts: boundedNullableInt\(row\.new_accounts\)/);
+  assert.match(handlers, /returning_accounts: boundedNullableInt\(row\.returning_accounts\)/);
 });

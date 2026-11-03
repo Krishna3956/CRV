@@ -47,7 +47,7 @@ test("business-first navigation and KPI hierarchy are explicit", () => {
   assert.match(source, /groupLabel="Investigate & act"/);
   assert.match(
     source,
-    /label="AI clients"[\s\S]*label="Activity"[\s\S]*label="Work completed"[\s\S]*label="Needs attention"/,
+    /label="Assistants using your MCP"[\s\S]*label="Observed work"[\s\S]*label="Reported completion"[\s\S]*label="Needs attention"/,
   );
   assert.doesNotMatch(source, /id: "tool-quality"/);
   assert.doesNotMatch(source, /Open Configure/);
@@ -97,24 +97,35 @@ test("Founder OS vertical slices share one data-trust contract", () => {
   assert.match(source, /N\/A/);
   assert.match(source, /Growth over time[\s\S]*observed each week/);
   assert.match(source, /function AccountGrowthChart/);
-  assert.match(source, /Unrecognized tool/);
+  assert.match(source, /Unrecognized assistant/);
   assert.match(source, /function CapabilityTrendChart/);
+  assert.match(source, /humanizeCapability/);
+  assert.match(source, /tool\.description\?\.trim\(\) \|\| humanizeCapability\(tool\.name\)/);
   assert.match(source, /function ToolDetailPanel/);
+  assert.match(source, /journeyStepLabel/);
+  assert.match(source, /journeyPathLabel/);
   assert.match(source, /signal, not a diagnosis/);
   assert.match(source, /Missing task events are not classified as abandonment/);
   assert.match(source, /insufficient data/i);
-  assert.match(source, /This is a guided example, not workspace telemetry/);
+  assert.match(source, /This is a guided example, not your live server activity/);
+});
+
+test("illustrative People data keeps its growth chart consistent with its KPIs", () => {
+  assert.match(source, /const scaleGrowth = \[/);
+  assert.match(source, /period_start: "2026-08-05", active_accounts: scale\(6\)/);
+  assert.match(source, /period_start: "2026-09-02", active_accounts: scale\(18\)/);
+  assert.match(source, /active_accounts: scale\(18\),\n    previous_period_active_accounts: scale\(14\)/);
 });
 
 test("desktop-only pilot boundary is visible on narrow dashboard viewports", () => {
-  assert.match(source, /Founder OS is supported on desktop browsers for this pilot/);
+  assert.match(source, /The TrackMCP dashboard is supported on desktop browsers for this pilot/);
   assert.match(source, /className="border-b border-amber-200 bg-amber-50[^\"]*lg:hidden/);
 });
 
 test("resources and prompts have a dedicated evidence-bounded surface", () => {
   assert.match(source, /function ResourcesPromptsView/);
   assert.match(source, /title=\"Resources & prompts\"/);
-  assert.match(source, /Hashed entities/);
+  assert.match(source, /Distinct resources or prompts observed/);
   assert.match(source, /transport_breakdown/);
   assert.match(source, /Transport coverage/);
   assert.match(source, /formatTransport\(item\.transport\)/);
@@ -139,21 +150,167 @@ test("dashboard typography uses the product type system", () => {
   assert.match(globalsSource, /--font-sans: var\(--font-inter\)/);
   assert.match(globalsSource, /\.dashboard-shell h1/);
   assert.match(globalsSource, /\.dashboard-shell \.dashboard-page-title/);
-  assert.match(globalsSource, /font-size: 1\.75rem/);
+  assert.match(globalsSource, /font-size: 1\.875rem/);
   assert.match(globalsSource, /\.dashboard-shell \.dashboard-section-title/);
-  assert.match(globalsSource, /font-size: 1rem/);
-  assert.match(source, /dashboard-shell min-h-screen bg-\[#f2f6f3\] font-sans/);
-  assert.match(globalsSource, /single green action color/);
+  assert.match(globalsSource, /font-size: 1\.0625rem/);
+  assert.match(source, /dashboard-shell min-h-screen font-sans/);
+  assert.match(globalsSource, /--color-brand: #63c893/);
+  assert.match(globalsSource, /Dashboard visual system: warm-neutral surfaces with a familiar emerald/);
+  assert.match(globalsSource, /--color-brand: #63c893/);
+  assert.match(globalsSource, /--color-brand-strong: #438d68/);
+  assert.match(globalsSource, /--color-brand-soft: #f3fcf6/);
+  assert.doesNotMatch(source, /linear-gradient/);
   assert.match(globalsSource, /button:not\(:disabled\):hover/);
+});
+
+test("dashboard decorative accents stay inside the neutral and green system", () => {
+  assert.doesNotMatch(source, /bg-\[#d7e5db\]|bg-\[#f4faf6\]|bg-\[#f6faf7\]|18,59,42/);
+  assert.doesNotMatch(source, /49,46,129|55,48,163/);
+  assert.match(source, /bg-brand-soft\/30/);
+  assert.match(source, /bg-brand-soft\/20/);
+  assert.match(source, /fill=\"#bbf7d0\"/);
 });
 
 test("dashboard keeps global controls inside one header and uses actionable empty states", () => {
   assert.match(source, /<header data-site-nav/);
-  assert.match(source, /<LanguageSwitcher \/>/);
+  assert.equal((source.match(/<LanguageSwitcher \/>/g) || []).length, 1);
   assert.match(source, /aria-label="Next steps"/);
   assert.match(source, /Create a connection key/);
   assert.match(source, /Make one real tool call/);
   assert.match(source, /Optional identity <span/);
+});
+
+test("live-data failures offer a safe illustrative fallback", () => {
+  const start = source.indexOf("function LiveDataState(");
+  const end = source.indexOf("function ViewContent(", start);
+  const liveDataSource = source.slice(start, end);
+  assert.match(liveDataSource, /onUseExample/);
+  assert.match(liveDataSource, /See Example data/);
+  assert.match(liveDataSource, /My data could not be shown for this request/);
+});
+
+test("quality no-data states preserve source context and next-step meaning", () => {
+  const start = source.indexOf("function QualityView(");
+  const end = source.indexOf("function IssuesView(", start);
+  const qualitySource = source.slice(start, end);
+  assert.match(qualitySource, /<DataSourceStrip dataMode=\{dataMode\} hasMyData=\{hasMyData\} view="quality"/);
+  assert.match(qualitySource, /Quality appears after your server connects/);
+  assert.match(qualitySource, /Example quality data is unavailable/);
+  assert.match(qualitySource, /A loading problem is not evidence that the server is healthy or unhealthy/);
+  assert.match(qualitySource, /no live workspace data was substituted/);
+});
+
+test("business users receive orientation before technical detail", () => {
+  assert.match(source, /Start here: who is showing up, what are they trying to do, did it work, and what needs attention\?/);
+  assert.match(source, /How to read this overview/);
+  assert.match(source, /After setup/);
+  assert.match(source, /One real event unlocks adoption, work, outcomes, and issue views/);
+  assert.match(source, /question="Which account groups and assistants are showing up, and is activity growing\?"/);
+  assert.match(source, /Read account-group activity/);
+  assert.match(source, /Which assistants are showing up/);
+  assert.match(source, /Most active account groups/);
+  assert.match(source, /First observed here; not signup/);
+  assert.match(source, /Observed before; not a retention claim/);
+  assert.match(source, /Unknown activity stays visible instead of being silently reassigned/);
+  assert.match(source, /question="What should the team investigate next, and how strong is the evidence\?"/);
+  assert.match(source, /Completion appears only when your server reports it/);
+  assert.match(source, /Typical steps per piece of work/);
+  assert.match(source, /Work waiting for an answer/);
+  assert.match(source, /Most-used features/);
+  assert.match(source, /Start with adoption/);
+  assert.match(source, /Features used per account group/);
+  assert.match(source, /Privacy-safe account groups/);
+  assert.match(source, /Activity without an optional account-group signal/);
+  assert.match(source, /Open a feature when a trend or error needs investigation/);
+  assert.match(source, /Advertised features not yet observed/);
+  assert.match(source, /Information lookups/);
+  assert.match(source, /Read information needs/);
+  assert.match(source, /Distinct items observed/);
+  assert.match(source, /Feature reliability/);
+  assert.match(source, /Separate outcomes from reliability/);
+  assert.match(source, /Outcomes come from explicit server reports/);
+  assert.match(source, /Share of activity/);
+  assert.match(source, /Decide what to investigate/);
+  assert.match(source, /Signals are ranked by evidence and affected volume/);
+  assert.match(source, /Follow observed work/);
+  assert.match(source, /A missing next event is not proof of abandonment/);
+  assert.match(source, /Use Evidence for detail/);
+  assert.match(source, /Payloads and private inputs stay hidden/);
+  assert.match(source, /Feature activity/);
+  assert.match(source, /privacy-safe item counts/);
+  assert.match(source, /assistants and privacy-safe account groups/);
+  assert.match(source, /Errors and retries/);
+  assert.match(source, /Related events/);
+  assert.match(source, /className="mt-1 text-\[11px\] leading-relaxed text-muted">\{helper\}/);
+});
+
+test("business-facing trend and resource outcomes use plain labels", () => {
+  assert.match(source, /Information lookups/);
+  assert.match(source, /Guided help/);
+  assert.match(source, /title=\{outcome\.kind === "resource" \? "MCP resources\/read" : "MCP prompts\/get"\}/);
+  assert.match(source, /fmtWeekLabel\(item\.period_start\)/);
+});
+
+test("feature reliability leads with business capability labels", () => {
+  assert.match(source, /humanizeCapability\(tool\.name\)/);
+  assert.match(source, /<span className="mt-1 block font-mono text-\[10px\] text-faint">/);
+  assert.match(source, /title=\{tool\.name\}/);
+});
+
+test("capability labels preserve common product acronyms", () => {
+  assert.match(source, /const acronyms = new Set\(\["api", "csv", "http", "mcp", "otel", "sdk", "sse", "url"\]\)/);
+  assert.match(source, /replace\(\/\(\[a-z0-9\]\)\(\[A-Z\]\)\/g, "\$1 \$2"\)/);
+});
+
+test("setup preview does not imply only two supported SDK languages", () => {
+  assert.match(source, /Install the SDK for your server language/);
+  assert.doesNotMatch(source, /Install the TypeScript or Python SDK\./);
+});
+
+test("People empty state explains the live-data prerequisite and routes to Setup", () => {
+  assert.match(source, /Account activity will appear after connection/);
+  assert.match(source, /verified account-group signal/);
+  assert.match(source, /href="\/dashboard\?view=setup&data=my"/);
+  assert.match(source, /Unrecognized assistant/);
+  assert.match(source, /client\.name \|\| "unknown"/);
+});
+
+test("Capabilities empty state explains what will populate after connection", () => {
+  assert.match(source, /Feature activity will appear after connection/);
+  assert.match(source, /which features are used, how broadly they are adopted/);
+  assert.match(source, /href="\/dashboard\?view=setup&data=my"/);
+});
+
+test("Resources and prompts empty state explains the evidence prerequisite", () => {
+  assert.match(source, /Information activity will appear after connection/);
+  assert.match(source, /what information people request and whether those interactions complete/);
+  assert.match(source, /resource or prompt activity/);
+});
+
+test("Journey empty state explains observed-path prerequisites", () => {
+  assert.match(source, /Journey evidence will appear after connection/);
+  assert.match(source, /common paths, explicit stops, pauses, and observed retries/);
+  assert.match(source, /No example or inferred funnel is substituted/);
+});
+
+test("Outcome empty state explains the explicit-evidence requirement", () => {
+  assert.match(source, /Outcome evidence will appear after connection/);
+  assert.match(source, /completion only when your server reports an explicit workflow start and final state/);
+  assert.match(source, /Tool activity alone is not treated as success/);
+});
+
+test("Issues empty state does not overclaim health", () => {
+  assert.match(source, /No confirmed incidents in this period/);
+  assert.match(source, /This is not proof that everything is healthy/);
+  assert.match(source, /review Overview and Evidence for the broader activity context/);
+});
+
+test("Overview exposes same-window comparisons only from read-model fields", () => {
+  assert.match(source, /Compared with the previous period/);
+  assert.match(source, /previous_period_calls/);
+  assert.match(source, /previous_period_active_accounts/);
+  assert.match(source, /No comparable baseline/);
+  assert.match(source, /previous comparison window was not returned/);
 });
 
 test("data source state is explicit and never silently substituted", () => {
@@ -164,7 +321,7 @@ test("data source state is explicit and never silently substituted", () => {
   );
   assert.match(source, /My data selected/);
   assert.match(source, /Example data selected/);
-  assert.match(source, /This is a guided example, not workspace telemetry/);
+  assert.match(source, /This is a guided example, not your live server activity/);
   assert.match(source, /QuickBooks Finance MCP/);
   assert.match(source, /No other data source was substituted/);
   assert.match(source, /No live data available/);
@@ -172,6 +329,13 @@ test("data source state is explicit and never silently substituted", () => {
   assert.doesNotMatch(source, /sampleMode \?\? /);
   assert.doesNotMatch(source, /Connected to live telemetry/);
   assert.doesNotMatch(source, /updated just now/);
+});
+
+test("data source control names the business meaning of each mode", () => {
+  assert.match(source, /Data source/);
+  assert.match(source, /Your workspace/);
+  assert.match(source, /Illustration only/);
+  assert.match(source, /aria-live=\"polite\"/);
 });
 
 test("example mode supplies every Founder OS vertical-slice read model", () => {
@@ -189,7 +353,7 @@ test("example mode supplies every Founder OS vertical-slice read model", () => {
   assert.match(source, /resource_reads: scale\(/);
   assert.match(source, /interaction_count: scale\(/);
   assert.match(source, /completion_rate: 37 \/ 50/);
-  assert.match(source, /tool\.description &&/);
+  assert.match(source, /tool\.description\?\.trim\(\) \|\| humanizeCapability\(tool\.name\)/);
   assert.match(source, /Run a bounded finance query/);
   assert.match(source, /Account activity is unavailable/);
   assert.match(source, /no example or inferred account data is substituted/);
@@ -216,6 +380,7 @@ test("zero-event activation uses page-specific connection states", () => {
   assert.match(source, /writeRouteState\(view, range, next, null, null, "evidence"\)/);
   assert.match(source, /!workspace \|\| !hasActiveKey/);
   assert.match(source, /state === "key"\s*\? "Complete setup"/);
+  assert.match(source, /!workspace\s*\? \(\) => \{[\s\S]*goTo\("setup"\);[\s\S]*onCreateWorkspace\(\);/);
   assert.match(
     source,
     /!hasActiveKey\s*\? \(\) => goTo\("setup"\)\s*:/,
@@ -224,20 +389,20 @@ test("zero-event activation uses page-specific connection states", () => {
 });
 
 test("Setup exposes truthful first-event and coverage states", () => {
-  assert.match(source, /First event verified/);
+  assert.match(source, /First server activity verified/);
   assert.match(source, /Limited coverage/);
-  assert.match(source, /Identity unresolved/);
+  assert.match(source, /account grouping is unavailable/);
   assert.match(source, /selected query reached its safety limit/);
-  assert.match(source, /observed account identity could not be resolved/);
+  assert.match(source, /no account grouping was available/);
   assert.match(source, /analytics\?\.data_trust\?\.truncated/);
   assert.match(source, /identity_coverage\.denominator > 0/);
   assert.match(source, /account_resolver_observed/);
   assert.match(source, /contractIdentity !== undefined && contractIdentity !== null/);
-  assert.match(source, /Identity resolved/);
+  assert.match(source, /Optional account grouping/);
   assert.match(source, /identityResolved: boolean \| null/);
   assert.match(source, /done === null \? "\?"/);
-  assert.match(source, /Transport observed/);
-  assert.match(source, /Event persisted/);
+  assert.match(source, /Connection method identified/);
+  assert.match(source, /Activity saved/);
   assert.match(source, /First event scope:/);
   assert.match(source, /service not reported/);
   assert.match(source, /environment not reported/);
@@ -249,6 +414,14 @@ test("Setup renders the server readiness contract without making identity mandat
   assert.match(source, /aria-label="Setup readiness"/);
 });
 
+test("Setup keeps active key scope behind optional technical detail", () => {
+  assert.match(source, /<details\n\s+className="mt-5 border-t border-line pt-4"/);
+  assert.match(source, /aria-label="Active connection key details"/);
+  assert.match(source, /Key details <span className="ml-1 font-normal text-muted">Optional technical detail<\/span>/);
+  assert.match(source, /View scope/);
+  assert.match(source, /open=\{activeSetupContract\.setup\.scope_match === false\}/);
+});
+
 test("Setup exposes an explicit refresh action for first-event evidence", () => {
   assert.match(source, /setupReloadToken/);
   assert.match(source, /setSetupReloadToken\(\(value\) => value \+ 1\)/);
@@ -256,6 +429,26 @@ test("Setup exposes an explicit refresh action for first-event evidence", () => 
   assert.match(source, /Refresh setup check/);
   assert.match(source, /setupChecking/);
   assert.match(source, /onClick=\{retrySetupCheck\}/);
+});
+
+test("Setup highlights the current next step instead of always emphasizing step one", () => {
+  assert.match(source, /const activeSetupStep = !workspaceId \|\| !hasActiveKey/);
+  assert.match(source, /aria-current=\{index === activeSetupStep \? "step" : undefined\}/);
+  assert.match(source, /index === activeSetupStep && <span[^>]*>Next<\/span>/);
+});
+
+test("Setup visual body order follows the key-before-server sequence", () => {
+  assert.match(source, /function SetupPanelSequence\(\{ children \}: \{ children: ReactNode \}\)/);
+  assert.match(source, /Children\.toArray\(children\)\.reverse\(\)/);
+  assert.match(source, /<SetupPanelSequence>[\s\S]*title="Connect the server"[\s\S]*title=\{workspaceId \? "Connection keys" : "Create your workspace"\}[\s\S]*<\/SetupPanelSequence>/);
+  assert.doesNotMatch(source, /className="order-[12]"/);
+});
+
+test("Setup connection status exposes the current primary action", () => {
+  assert.match(source, /connectionState === "no-key"/);
+  assert.match(source, /workspaceId \? "Create connection key" : "Create workspace"/);
+  assert.match(source, /focusSetupPrimaryAction/);
+  assert.match(source, /id="setup-primary-action"/);
 });
 
 test("Setup clears stale workspace evidence while a workspace check is in flight", () => {
@@ -276,7 +469,7 @@ test("Setup distinguishes stale ingestion evidence from current health", () => {
 
 test("Setup keeps deployment linkage count-only and non-health claiming", () => {
   assert.match(source, /Deployment linkage/);
-  assert.match(source, /not deployment health or release status/);
+  assert.match(source, /not release health/);
 });
 
 test("The journey renders bounded task evidence without claiming business completion", () => {
@@ -294,10 +487,20 @@ test("Needs attention renders bounded action context", () => {
 
 test("connection keys are explicitly created from Setup and shown once in full", () => {
   assert.match(source, /Complete setup/);
+  assert.match(source, /missing workspace or connection key/);
+  assert.doesNotMatch(source, /missing workspace or API key/);
   assert.match(source, /className="max-w-full break-all overflow-x-auto/);
   assert.match(source, /\{newKey\}/);
   assert.match(source, /\{key\.key_prefix\}••••••/);
   assert.match(source, /onClick=\{\(\) => onGenerateKey/);
+});
+
+test("Setup keeps a long key history out of the primary scan", () => {
+  assert.match(source, /showAllActiveKeys/);
+  assert.match(source, /Show all active keys/);
+  assert.match(source, /Show fewer active keys/);
+  assert.match(source, /activeKeys\.slice\(0, 3\)/);
+  assert.match(source, /No active connection key is currently shown/);
 });
 
 test("mobile dashboard header wraps without clipping workspace or data controls", () => {
@@ -343,6 +546,17 @@ test("Setup breaks the no-workspace connection-key loop", () => {
   assert.match(setupSource, /workspaceId \? "Create a connection key to begin" : "Create your workspace to begin"/);
 });
 
+test("workspace creation errors retry workspace setup instead of analytics", () => {
+  assert.match(source, /const retryError = workspace \? refreshAll : onCreateWorkspace/);
+  assert.match(source, /const retryErrorLabel = workspace \? "Retry dashboard data" : "Retry workspace setup"/);
+  assert.match(source, /<ErrorBanner message=\{error\} onRetry=\{retryError\} retryLabel=\{retryErrorLabel\} \/>/);
+});
+
+test("dashboard header keeps data and language controls together", () => {
+  assert.match(source, /<div className="flex shrink-0 items-center gap-2 sm:gap-3">/);
+  assert.match(source, /<div className="flex shrink-0 items-center gap-1\.5 whitespace-nowrap" role="group" aria-label="Data source">/);
+});
+
 test("Setup documentation link is external and the connection steps are explicit", () => {
   assert.match(source, /label: "Read documentation"/);
   assert.match(source, /const documentationHref = `https:\/\/trackmcp\.com\/docs\/\$\{/);
@@ -364,7 +578,7 @@ test("Python setup snippet is copy-paste complete", () => {
   const setupSource = source.slice(setupStart, setupEnd);
   assert.match(setupSource, /\/api\/v2\/setup\?workspace_id=/);
   assert.match(setupSource, /waiting_for_first_event/);
-  assert.match(setupSource, /Privacy policy applied/);
+  assert.match(setupSource, /Privacy rules applied/);
   assert.match(setupSource, /next_steps/);
   assert.match(setupSource, /ingestion_lag_seconds/);
   assert.match(setupSource, /Python: `python3 -m pip install trackmcp\\n\\nimport os\\nfrom trackmcp import with_trackmcp/);
@@ -375,8 +589,8 @@ test("Setup exposes every documented SDK path without implying publication", () 
   assert.match(source, /\["TypeScript", "Python", "Go", "\.NET"\]/);
   assert.match(source, /language === "Go"[\s\S]*\/docs\/go/);
   assert.match(source, /language === "\.NET"[\s\S]*\/docs\/dotnet/);
-  assert.match(source, /reviewed source package rather than a registry release/);
-  assert.match(source, /reviewed source package rather than a NuGet release/);
+  assert.match(source, /Go uses the reviewed source package for now/);
+  assert.match(source, /.NET uses the reviewed source package for now/);
 });
 
 test("Setup language selector exposes semantic tabs and announces the active code panel", () => {
@@ -410,6 +624,13 @@ test("protocol surface cards disclose durable entity-read coverage", () => {
   assert.match(source, /Durable read projection/);
   assert.match(source, /Durable read schema unavailable/);
   assert.match(source, /Needs input/);
+});
+
+test("resource and prompt read metrics do not turn unavailable projections into zero", () => {
+  assert.match(source, /entityReadProjectionAvailable = rows\.length > 0 && rows\.every/);
+  assert.match(source, /successfulReads = entityReadProjectionAvailable/);
+  assert.match(source, /value=\{surfaces && successfulReads !== null \? fmt\(successfulReads\) : "N\/A"\}/);
+  assert.match(source, /surface\.entity_analytics\.status === "schema_unavailable" \? "N\/A"/);
 });
 
 test("example data offers a clear setup path and Setup keeps trust below the setup cards", () => {
@@ -488,14 +709,15 @@ test("Setup keeps revoked key history collapsed until explicitly requested", () 
   assert.match(setupSource, /showRevokedKeys/);
   assert.match(setupSource, /aria-expanded=\{showRevokedKeys\}/);
   assert.match(setupSource, /Show revoked keys \(\$\{keys\.filter\(\(key\) => key\.revoked_at\)\.length\}\)/);
-  assert.match(setupSource, /keys\.filter\(\(key\) => showRevokedKeys \|\| !key\.revoked_at\)/);
+  assert.match(setupSource, /const revokedKeys = keys\.filter\(\(key\) => Boolean\(key\.revoked_at\)\)/);
+  assert.match(setupSource, /\.\.\.\(showRevokedKeys \? revokedKeys : \[\]\)/);
 });
 
 test("empty page previews explain each product area instead of repeating generic placeholders", () => {
   for (const phrase of [
     "The business tasks users start",
-    "What your MCP advertises versus what users call",
-    "p95 timing over the selected activity period",
+    "What your MCP offers versus what people use",
+    "Observed response timing over the selected period",
     "The current state, such as firing, resolved, or suppressed",
     "The ordered steps, timing, and status of the trace",
   ]) {
@@ -522,6 +744,14 @@ test("Overview always renders Needs attention and preserves uncertainty", () => 
   assert.doesNotMatch(source, /sufficient observed evidence/);
 });
 
+test("business readers get plain-language signal and outcome guidance first", () => {
+  assert.match(source, /Observed patterns worth a closer look/);
+  assert.match(source, /Observed patterns are separate from confirmed incidents/);
+  assert.match(source, /See what work was reported as complete, failed, pending, or still unknown/);
+  assert.match(source, /How completion is calculated/);
+  assert.match(source, /Session activity alone does not count as success/);
+});
+
 test("Overview exposes Founder OS outcome and evidence-quality states", () => {
   assert.match(source, /analytics\.founder_os/);
   assert.match(source, /function FounderOSSignalPanel/);
@@ -530,7 +760,8 @@ test("Overview exposes Founder OS outcome and evidence-quality states", () => {
   assert.match(source, /event-weighted, not unique people/);
   assert.match(source, /aria-label="Data trust"/);
   assert.match(source, /title="Outcome evidence"/);
-  assert.match(source, /Semantic facts are separated from activity/);
+  assert.match(source, /TrackMCP counts only outcomes your server explicitly reported/);
+  assert.doesNotMatch(source, /Semantic facts are separated from activity/);
   for (const label of ["Completed", "Failed", "Pending", "Unknown", "Not observable", "Observed", "Inferred", "Insufficient data", "Conflicting"]) {
     assert.match(source, new RegExp(label));
   }
@@ -539,20 +770,20 @@ test("Overview exposes Founder OS outcome and evidence-quality states", () => {
   assert.match(source, /Evidence window:/);
   assert.match(source, /bounded scan complete/);
   assert.match(source, /scan limit reached; results may be incomplete/);
-  assert.match(source, /Telemetry recency/);
+  assert.match(source, /Activity recency/);
   assert.match(source, /evidence watermark, not a service-health claim/);
   assert.match(source, /No event observed in the last 24 hours/);
 });
 
 test("Data trust exposes bounded derived-refresh health without implying activity", () => {
   assert.match(source, /refreshStatus=\{analytics\.refresh_status\}/);
-  assert.match(source, /aria-label="Refresh worker status"/);
-  assert.match(source, /Worker metrics are bounded to the latest 100 workspace jobs/);
+  assert.match(source, /aria-label="Dashboard refresh checks"/);
+  assert.match(source, /Refresh metrics are bounded to the latest 100 workspace jobs/);
   assert.match(source, /no job is evidence of no customer activity/);
   assert.match(source, /Max lag/);
   assert.match(source, /worker_health/);
   assert.match(source, /insufficient_data/);
-  assert.match(source, /Some derived-data jobs are queued, retrying, running, or failed/);
+  assert.match(source, /Some dashboard refresh jobs are queued, retrying, running, or failed/);
 });
 
 test("Overview exposes protocol lifecycle signals with an explicit non-outcome caveat", () => {
@@ -629,13 +860,18 @@ test("Capabilities presents bounded modern protocol family activity", () => {
   assert.match(source, /bounded observations/);
 });
 
-test("Overview session actions clearly open traces", () => {
-  assert.match(source, /title="Sessions in selected period"[\s\S]*label: "View traces"/);
-  assert.match(source, /Open trace <ChevronRight/);
+test("Overview session actions clearly open evidence", () => {
+  assert.match(source, /title="Sessions in selected period"[\s\S]*label: "View evidence"/);
+  assert.match(source, /Open evidence <ChevronRight/);
+  assert.doesNotMatch(source, />Open Evidence(?:\s|<)/);
+  assert.equal(source.includes('Open Evidence'), false);
 });
 
 test("completion is explicit-outcome-only and tool quality exposes insufficient reasons", () => {
   assert.match(source, /function explicitOutcomeTotals/);
+  assert.match(source, /Based on work with a reported final state/);
+  assert.match(source, /Server-reported completion/);
+  assert.doesNotMatch(source, /Explicit semantic evidence/);
   assert.match(source, /Explicit workflow outcome events only/);
   assert.match(source, /No explicit workflow outcome data/);
   assert.match(source, /Specific reason:/);
@@ -709,15 +945,39 @@ test("Overview keeps decision KPIs above expandable evidence detail", () => {
   assert.match(source, /Expand details/);
 });
 
+test("Overview gives business users a bounded at-a-glance takeaway", () => {
+  assert.match(source, /function OverviewTakeaway\(/);
+  assert.match(source, /At a glance/);
+  assert.match(source, /This summary uses only the selected window/);
+  assert.match(source, /not a measure of customer count or overall product health/);
+  assert.match(source, /<OverviewTakeaway analytics=\{analytics\} dataMode=\{dataMode\} hasMyData=\{hasMyData\} \/>/);
+});
+
 test("dashboard panels expose concise information hints and universal pointer affordances", () => {
   assert.match(source, /function InfoHint\(/);
   assert.match(source, /role="tooltip"/);
+  assert.match(source, /aria-expanded=\{open\}/);
+  assert.match(source, /onClick=\{\(\) => setOpen/);
   assert.match(source, /About \$\{title\}/);
   assert.match(globalsSource, /\.dashboard-shell button:not\(:disabled\)/);
 });
 
+test("setup makes every supported connection path visible beside the recommended path", () => {
+  assert.match(source, /Choose a connection path/);
+  for (const label of ["TypeScript", "Python", "Go", ".NET", "OpenTelemetry"]) {
+    assert.match(source, new RegExp(`\\[\"${label.replace(".", "\\.")}\",`));
+  }
+  assert.match(source, /The recommended path is the native SDK/);
+});
+
+test("activity chart uses compact geometry and a table fallback", () => {
+  assert.match(source, /height = 276/);
+  assert.match(source, /className="grid h-\[180px\]/);
+  assert.match(source, /View daily values as a table/);
+});
+
 test("Setup makes server-side account identity configuration discoverable", () => {
-  assert.match(source, /Show resolver-linked account activity/);
+  assert.match(source, /Show optional account-group activity/);
   assert.match(source, /accountIdResolver/);
   assert.match(source, /account_id_resolver/);
   assert.match(source, /AccountIDResolver: func\(\) string/);
@@ -760,6 +1020,31 @@ test("Issues renders latency regression summaries in milliseconds, not percentag
   assert.match(source, /summaryLabel\(incident\.baseline, incident\.metric\)/);
 });
 
+test("Resources and prompts preserve unavailable outcome rates as N/A", () => {
+  assert.match(source, /percent\(activity\?\.prompt_stall_rate \?\? null\)/);
+  assert.match(source, /percent\(activity\?\.prompt_error_rate \?\? null\)/);
+  assert.match(source, /percent\(item\.stall_rate \?\? null\)/);
+  assert.match(source, /percent\(item\.error_rate \?\? null\)/);
+  assert.match(source, /percent\(item\.unknown_rate \?\? null\)/);
+  assert.doesNotMatch(source, /Math\.round\(\(item\.(stall_rate|error_rate|unknown_rate) \|\| 0\) \* 100\)/);
+});
+
+test("Capability breadth uses a neutral visual when the measure is unavailable", () => {
+  assert.match(source, /analytics\.tool_adoption\.breadth == null \? "bg-line" : "bg-paper"/);
+  assert.match(source, /Capability breadth unavailable/);
+  assert.match(source, /analytics\.tool_adoption\.breadth != null && <div className="h-full bg-brand"/);
+  assert.doesNotMatch(source, /tool_adoption\.breadth \|\| 0/);
+});
+
+test("Share bars stay neutral when a distribution share is unavailable", () => {
+  assert.match(source, /step\.share == null \? "bg-line" : "bg-mist"/);
+  assert.match(source, /client\.share == null \? "bg-line" : "bg-paper"/);
+  assert.match(source, /item\.share == null \? "bg-line" : "bg-mist"/);
+  assert.match(source, /Interaction share unavailable/);
+  assert.doesNotMatch(source, /\(step\.share \|\| 0\) \* 100/);
+  assert.doesNotMatch(source, /\(client\.share \|\| 0\) \* 100/);
+});
+
 test("Example Issues shows illustrative incident lifecycles", () => {
   assert.match(source, /EXAMPLE_ALERT_INCIDENTS: AlertIncident\[\]/);
   assert.match(source, /Illustrative alert lifecycle examples with bounded evidence/);
@@ -768,7 +1053,7 @@ test("Example Issues shows illustrative incident lifecycles", () => {
   assert.doesNotMatch(source, /Alert incidents are available for My data only/);
 });
 
-test("example Capabilities, Quality, and Evidence omit the explanatory blue summary panels", () => {
+test("example Capabilities, Quality, and Evidence omit the explanatory accent summary panels", () => {
   assert.doesNotMatch(source, /function ExampleServerSummary/);
   assert.doesNotMatch(source, /What this example server does/);
   assert.doesNotMatch(source, /How to read this example/);

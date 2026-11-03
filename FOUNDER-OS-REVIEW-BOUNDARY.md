@@ -27,6 +27,15 @@ reviewer disposition before staging; it is never included by a blanket add.
 | `docs/evidence/production-auth-scope-smoke-2026-10-30.json` | review-required | repository maintainer | release owner | redacted, read-only production tenant/auth scope evidence; review that it contains no credentials, workspace identifiers, raw bodies, or mutation results before release use |
 | `docs/evidence/synthetic-customer-mcp-uat-2026-10-30.json` | review-required | repository maintainer | release owner | redacted synthetic MCP fixture evidence; review that it contains no credentials or customer claims and remains engineering-only evidence rather than real customer interoperability |
 | `docs/evidence/authenticated-product-synthetic-mcp-uat-2026-10-30.json` | review-required | repository maintainer | release owner | redacted authenticated product integration evidence; review disposable-key handling, product-ingest scope, metadata-only retention, and the continued synthetic-server boundary |
+| `docs/evidence/business-user-ux-local-preview-2026-11-03.md` | review-required | repository maintainer | release owner | local UX/browser evidence only; review that it remains clearly separated from production proof and contains no credentials or customer data |
+| `docs/IN-APP-COPY-UX-READINESS.md` | review-required | repository maintainer | release owner | UX/copy readiness ledger; review implementation evidence, remaining browser/UAT gates, and keep local-only claims separate from production approval |
+| `docs/IN-APP-COPY-UX-STRATEGY-2026-11.md` | review-required | repository maintainer | release owner | research-backed copy and interaction strategy; review wording and product claims before publication |
+| `docs/IN-APP-COPY-UX-TARGET.md` | review-required | repository maintainer | release owner | UX acceptance target; review the evidence mapping and keep production/UAT boundaries explicit |
+| `docs/IN-APP-COPY-UX-WORK-QUEUE.md` | review-required | repository maintainer | release owner | implementation checklist; review completion marks against tests and browser evidence before release |
+| `docs/CONCISE-COPY-STRATEGY-2026-11.md` | review-required | repository maintainer | release owner | research-backed concise-copy strategy; review wording and product claims before publication |
+| `docs/CONCISE-COPY-TARGET.md` | review-required | repository maintainer | release owner | concise-copy acceptance target; keep local and production evidence separate |
+| `docs/CONCISE-COPY-WORK-QUEUE.md` | review-required | repository maintainer | release owner | concise-copy implementation checklist; review completion marks against tests and browser evidence |
+| `docs/CONCISE-COPY-READINESS.md` | review-required | repository maintainer | release owner | concise-copy release ledger; production merge/deploy/UAT remain explicit gates |
 
 ## Boundary rules
 

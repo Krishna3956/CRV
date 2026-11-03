@@ -25,3 +25,12 @@ test("metric lookup returns the canonical definition", () => {
   assert.equal(getMetricDefinition("work_completed").source, "Explicit workflow outcome events");
   assert.throws(() => getMetricDefinition("not-a-metric" as never), /Unknown metric/);
 });
+
+test("business-facing labels stay aligned with the dashboard vocabulary", () => {
+  assert.equal(getMetricDefinition("ai_clients").label, "Assistants using your MCP");
+  assert.equal(getMetricDefinition("activity").label, "Observed work");
+  assert.equal(getMetricDefinition("work_completed").label, "Reported completion");
+  assert.equal(getMetricDefinition("tool_call_volume").label, "Feature uses observed");
+  assert.equal(getMetricDefinition("tool_adoption_breadth").label, "Average features per account group");
+  assert.equal(getMetricDefinition("typical_journey_length").label, "Typical steps per piece of work");
+});

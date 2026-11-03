@@ -6,6 +6,11 @@ import { projectTrackMCPDataTrust } from "../../../../lib/telemetry/data-trust.t
 const MAX_TEXT = 128;
 const boundedText = (value: unknown) => typeof value === "string" ? value.slice(0, MAX_TEXT) : null;
 const boundedInt = (value: unknown, max = 1000000) => typeof value === "number" && Number.isSafeInteger(value) ? Math.max(0, Math.min(max, value)) : 0;
+const boundedNullableInt = (value: unknown, max = 1000000) => value === null || value === undefined
+  ? null
+  : typeof value === "number" && Number.isSafeInteger(value)
+    ? Math.max(0, Math.min(max, value))
+    : null;
 const boundedRate = (value: unknown) => typeof value === "number" && Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : null;
 
 function projectClient(value: unknown): Record<string, unknown> | null {
@@ -30,7 +35,7 @@ function projectPeopleModel(value: unknown): Record<string, unknown> | null {
   }) : [];
   return {
     active_accounts: boundedInt(row.active_accounts), previous_period_active_accounts: boundedInt(row.previous_period_active_accounts),
-    new_accounts: boundedInt(row.new_accounts), returning_accounts: boundedInt(row.returning_accounts),
+    new_accounts: boundedNullableInt(row.new_accounts), returning_accounts: boundedNullableInt(row.returning_accounts),
     classification_status: boundedText(row.classification_status), growth, client_breakdown: clientBreakdown,
     top_accounts: topAccounts, identity_coverage: boundedRate(row.identity_coverage), limitation: boundedText(row.limitation),
   };

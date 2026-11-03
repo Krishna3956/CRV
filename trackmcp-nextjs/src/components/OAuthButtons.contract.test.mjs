@@ -32,6 +32,15 @@ test("social discovery failures fail closed without causing a layout shift", () 
   assert.match(component, /setProviders\(value\)/);
   assert.match(component, /aria-busy="true"/);
   assert.match(component, /Loading sign-in options/);
+  assert.match(component, /skeletonClass = .*cursor-default/);
+  assert.match(component, /<GoogleIcon \/>/);
+  assert.match(component, /<GitHubIcon \/>/);
+});
+
+test("social provider icons are visible before provider discovery completes", () => {
+  assert.match(component, /aria-busy="true"/);
+  assert.match(component, /disabled className=\{skeletonClass\}/);
+  assert.doesNotMatch(component, /Loading…<\/span>/);
 });
 
 test("provider discovery uses the bounded transient retry helper", () => {

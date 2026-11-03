@@ -34,3 +34,26 @@ test("people returns the complete privacy-safe Founder OS read model", async () 
   assert.equal(JSON.stringify(body).includes("private_note"), false);
   assert.equal(JSON.stringify(body).includes("secret-account-key"), false);
 });
+
+test("people preserves unavailable classification counts as null", async () => {
+  const analytics = async () => new Response(JSON.stringify({
+    range_days: 30,
+    who_is_using_it: {
+      active_accounts: 3,
+      previous_period_active_accounts: 2,
+      new_accounts: null,
+      returning_accounts: null,
+      classification_status: "insufficient_data",
+      growth: [],
+      client_breakdown: [],
+      top_accounts: [],
+      identity_coverage: null,
+      limitation: "The bounded history scan was incomplete.",
+    },
+  }), { status: 200, headers: { "content-type": "application/json" } });
+  const response = await createPeopleHandler(analytics)(new Request("https://trackmcp.test/api/v2/people"));
+  const body = await response.json();
+  assert.equal(body.who_is_using_it.new_accounts, null);
+  assert.equal(body.who_is_using_it.returning_accounts, null);
+  assert.equal(body.who_is_using_it.classification_status, "insufficient_data");
+});

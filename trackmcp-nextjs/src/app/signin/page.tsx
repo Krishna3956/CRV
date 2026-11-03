@@ -17,19 +17,14 @@ type AuthScreen = "credentials" | "signup-code" | "reset-email" | "reset-code" |
 
 export default function SignInPage({ initialMode = "signin" }: { initialMode?: "signin" | "signup" }) {
   const router = useRouter();
-  const [mode, setMode] = useState<"signin" | "signup">(() => {
-    if (typeof window === "undefined") return initialMode;
-    return new URLSearchParams(window.location.search).get("mode") === "signup" ? "signup" : initialMode;
-  });
+  const [mode, setMode] = useState<"signin" | "signup">(initialMode);
   const [screen, setScreen] = useState<AuthScreen | string>("credentials");
   const [status, setStatus] = useState<AuthStatus>("idle");
   const [email, setEmail] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
+  const [name, setName] = useState("");
   const [requestedEmail, setRequestedEmail] = useState("");
   const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [resendIn, setResendIn] = useState(0);
@@ -43,6 +38,11 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
   const [authNext, setAuthNext] = useState("/dashboard");
 
   useEffect(() => {
+    const requestedMode = new URLSearchParams(window.location.search).get("mode");
+    // The query string is client-only; apply it after hydration to avoid a
+    // server/client markup mismatch on direct /signin?mode=signup links.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (requestedMode === "signup") setMode("signup");
     const next = new URLSearchParams(window.location.search).get("next");
     nextPath.current = safeAuthNext(next);
     setAuthNext(nextPath.current);
@@ -136,10 +136,9 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
         setError("Your password must be at least 8 characters.");
         return;
       }
-      if (password !== confirmPassword) {
-        setError("The passwords do not match.");
-        return;
-      }
+      const nameParts = name.trim().split(/\s+/).filter(Boolean);
+      const firstName = nameParts[0] || "";
+      const lastName = nameParts.slice(1).join(" ");
       setExistingAccount(false);
       setEmailCheckStatus("checking");
       trackMarketingEvent("auth_request_started", { auth_mode: mode });
@@ -148,7 +147,7 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
       const { data, error: authError } = await getSupabaseBrowser().auth.signUp({
         email: normalizedEmail,
         password,
-        options: { data: { first_name: firstName, last_name: lastName, full_name: `${firstName} ${lastName}`.trim(), terms_accepted: true } },
+        options: { data: { first_name: firstName, last_name: lastName, full_name: name.trim(), terms_accepted: true } },
       });
       if (authError) {
         setError(authError.message);
@@ -173,7 +172,7 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
       setStatus("idle");
       setScreen("signup-code");
       trackMarketingEvent("signup_request_sent", { auth_mode: mode });
-      void sendWeb3Form({ subject: "TrackMCP signup request", from_name: "TrackMCP · Auth", name: `${firstName} ${lastName}`.trim(), email: normalizedEmail, company: "", intent: "signup" });
+      void sendWeb3Form({ subject: "TrackMCP signup request", from_name: "TrackMCP · Auth", name: name.trim(), email: normalizedEmail, company: "", intent: "signup" });
       return;
     }
 
@@ -273,7 +272,6 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
     setExistingAccount(false);
     setEmailCheckStatus("idle");
     setPassword("");
-    setConfirmPassword("");
     const path = nextMode === "signup" ? "/signup" : "/signin";
     const next = nextPath.current;
     router.replace(next === "/dashboard" ? path : `${path}?${new URLSearchParams({ next }).toString()}`);
@@ -282,34 +280,40 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
   const codeStep = screen === "signup-code";
   const resetFlow = screen === "reset-email" || screen === "reset-code" || screen === "reset-password";
   const heading = codeStep ? "Verify your email" : mode === "signup" ? "Create your TrackMCP account" : "Sign in to TrackMCP";
-  const description = codeStep ? <>We sent a code to <strong className="font-medium text-body">{requestedEmail}</strong>.</> : mode === "signup" ? "Start observing your MCP server in minutes." : "Welcome back. Continue to your MCP analytics.";
+  const description = codeStep ? <>We sent a code to <strong className="font-medium text-body">{requestedEmail}</strong>.</> : mode === "signup" ? null : "Welcome back. Continue to your MCP analytics.";
   const resetHeading = screen === "reset-code" ? "Enter your reset code" : screen === "reset-password" ? "Set a new password" : "Reset your password";
   const resetDescription = screen === "reset-password" ? "Choose a new password for your TrackMCP account." : "We’ll email you a code so you can set a password.";
   const field = "w-full rounded-lg border border-line-strong bg-white px-3.5 py-2.5 text-[15px] text-ink outline-none transition-colors placeholder:text-faint focus:border-brand focus:ring-2 focus:ring-brand/20";
 
   return (
     <main className="grid min-h-screen lg:grid-cols-2">
+      <style jsx>{`
+        button:not(:disabled), a { cursor: pointer; }
+        button:disabled { cursor: not-allowed; }
+        button:focus-visible, a:focus-visible { outline: 2px solid rgb(22 163 74); outline-offset: 2px; }
+      `}</style>
       <div className="flex flex-col px-6 py-8">
         <TrackMCPLogo mark href="https://trackmcp.com" />
         <div className="flex flex-1 items-center justify-center">
           <div className="w-full max-w-[380px] py-10">
             <h1 className="text-[28px] font-medium tracking-[-0.02em] text-ink">{heading}</h1>
-            <p className="mt-2 text-[14.5px] leading-relaxed text-muted">{description}</p>
+            {description && <p className="mt-2 text-[14.5px] leading-relaxed text-muted">{description}</p>}
 
             {!resetFlow && screen === "credentials" && <>
               <OAuthButtons next={authNext} mode={mode} onError={setError} />
-              {mode === "signup" && <p className="mt-4 text-[12px] leading-relaxed text-muted">By continuing, you agree to the <Link href="/terms" className="font-medium text-brand-strong hover:underline">Terms of Service</Link> and <Link href="/privacy" className="font-medium text-brand-strong hover:underline">Privacy Policy</Link>.</p>}
             </>}
 
         {screen === "credentials" || resetFlow ? <form onSubmit={submitCredentials} className="mt-7 flex flex-col gap-3">
-          {screen === "credentials" && mode === "signup" && <div className="grid gap-3 sm:grid-cols-2"><label><span className="mb-1.5 block text-[12px] font-medium text-body">First name</span><input required value={firstName} onChange={(event) => setFirstName(event.target.value)} placeholder="Alex" className={field} /></label><label><span className="mb-1.5 block text-[12px] font-medium text-body">Last name</span><input required value={lastName} onChange={(event) => setLastName(event.target.value)} placeholder="Morgan" className={field} /></label></div>}
+              {screen === "credentials" && mode === "signup" && <label><span className="mb-1.5 block text-[12px] font-medium text-body">Name <span className="font-normal text-faint">(optional)</span></span><input value={name} onChange={(event) => setName(event.target.value)} placeholder="Alex Morgan" autoComplete="name" className={field} /></label>}
           <label><span className="mb-1.5 block text-[12px] font-medium text-body">Email address</span><input ref={emailInputRef} required type="email" value={email} onChange={(event) => { setEmail(event.target.value); setError(""); setExistingAccount(false); setEmailCheckStatus("idle"); }} onBlur={() => void checkSignupEmail()} placeholder="you@example.com" autoComplete="email" className={field} /></label>
           {mode === "signup" && screen === "credentials" && emailCheckStatus === "checking" && <p className="-mt-1 text-[12px] text-muted">Checking this email…</p>}
-          {mode === "signup" && screen === "credentials" && existingAccount && <p className="-mt-1 text-[12.5px] leading-relaxed text-amber-900">This email is already registered. <button type="button" onClick={() => switchMode("signin")} className="font-medium underline underline-offset-2">Go to sign in</button></p>}
-          {(screen === "credentials" || resetFlow) && <><label><span className="mb-1.5 block text-[12px] font-medium text-body">Password</span><input required type="password" value={password} onChange={(event) => { setPassword(event.target.value); setError(""); }} placeholder={mode === "signup" ? "At least 8 characters" : "Your password"} autoComplete={mode === "signup" ? "new-password" : "current-password"} className={field} /></label>{mode === "signup" && <><label><span className="mb-1.5 block text-[12px] font-medium text-body">Confirm password</span><input required type="password" value={confirmPassword} onChange={(event) => { setConfirmPassword(event.target.value); setError(""); }} placeholder="Repeat your password" autoComplete="new-password" className={field} /></label><p className="text-[12px] leading-relaxed text-muted">Use at least 8 characters. You&apos;ll verify your email before entering the dashboard.</p></>}</>}
-          <button type="submit" disabled={status === "requesting" || (mode === "signup" && (existingAccount || emailCheckStatus === "checking"))} className="mt-1 inline-flex items-center justify-center gap-2 rounded-lg bg-ink px-5 py-3 text-[14px] font-medium text-white transition-colors hover:bg-black disabled:opacity-60">{status === "requesting" ? <><Loader2 size={15} className="animate-spin" />Sending</> : <>{mode === "signup" ? "Create account" : "Sign in"}<ArrowRight size={15} /></>}</button>
-          {mode === "signin" && <button type="button" onClick={() => resetTo("reset-email")} className="inline-flex items-center justify-center gap-2 text-[12px] font-medium text-muted hover:text-body"><KeyRound size={13} />Forgot or need to set a password?</button>}
+          {mode === "signup" && screen === "credentials" && existingAccount && <p className="-mt-1 text-[12.5px] leading-relaxed text-amber-900">This email is already registered. <button type="button" onClick={() => switchMode("signin")} className="cursor-pointer font-medium underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">Go to sign in</button></p>}
+          {(screen === "credentials" || resetFlow) && <><label><span className="mb-1.5 block text-[12px] font-medium text-body">Password</span><input required type="password" value={password} onChange={(event) => { setPassword(event.target.value); setError(""); }} placeholder={mode === "signup" ? "At least 8 characters" : "Your password"} autoComplete={mode === "signup" ? "new-password" : "current-password"} className={field} /></label>{mode === "signup" && <p className="text-[12px] leading-relaxed text-muted">Use at least 8 characters. We&apos;ll verify your email before opening the dashboard.</p>}</>}
+          <button type="submit" disabled={status === "requesting" || (mode === "signup" && (existingAccount || emailCheckStatus === "checking"))} className="mt-1 inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-ink px-5 py-3 text-[14px] font-medium text-white transition-colors hover:bg-black disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2">{status === "requesting" ? <><Loader2 size={15} className="animate-spin" />Sending</> : <>{mode === "signup" ? "Create account" : "Sign in"}<ArrowRight size={15} /></>}</button>
+          {mode === "signin" && <button type="button" onClick={() => resetTo("reset-email")} className="inline-flex cursor-pointer items-center justify-center gap-2 text-[12px] font-medium text-muted hover:text-body focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"><KeyRound size={13} />Forgot or need to set a password?</button>}
         </form> : screen === "reset-password" ? <form onSubmit={updatePassword} className="mt-7 flex flex-col gap-3"><label><span className="mb-1.5 block text-[13px] font-medium text-body">New password</span><input required type="password" value={newPassword} onChange={(event) => { setNewPassword(event.target.value); setError(""); }} placeholder="At least 8 characters" autoComplete="new-password" className={field} /></label><label><span className="mb-1.5 block text-[13px] font-medium text-body">Confirm new password</span><input required type="password" value={confirmNewPassword} onChange={(event) => { setConfirmNewPassword(event.target.value); setError(""); }} placeholder="Repeat your password" autoComplete="new-password" className={field} /></label><p className="text-[13px] leading-relaxed text-muted">After this, you can sign in with your email and password.</p><button type="submit" disabled={status === "updating"} className="mt-1 inline-flex items-center justify-center gap-2 rounded-lg bg-ink px-5 py-3 text-[15px] font-medium text-white transition-colors hover:bg-black disabled:opacity-70">{status === "updating" ? <><Loader2 size={16} className="animate-spin" />Saving</> : <>Set password<ArrowRight size={16} /></>}</button></form> : <form onSubmit={verifyCode} className="mt-7 flex flex-col gap-3"><div className="flex items-start gap-3 rounded-lg border border-brand/30 bg-brand-soft/40 px-3.5 py-2.5 text-[13px] leading-snug text-brand-strong"><span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-white/70"><Mail size={15} /></span><p>Check your inbox and enter the newest code below. You can open the email on your phone and type the code here.</p></div><label><span className="mb-1.5 block text-[13px] font-medium text-body">Verification code</span><input ref={codeInputRef} required inputMode="numeric" pattern="[0-9]{6}" autoComplete="one-time-code" maxLength={6} value={code} onChange={(event) => { setCode(event.target.value.replace(/\D/g, "").slice(0, 6)); setError(""); }} placeholder="000000" className={`${field} text-center font-mono text-[24px] tracking-[0.28em]`} /></label><p className="text-center text-[12px] leading-relaxed text-faint">The code can only be used once.</p><button type="submit" disabled={status === "verifying" || code.length !== 6} className="mt-1 inline-flex items-center justify-center gap-2 rounded-lg bg-ink px-5 py-3 text-[15px] font-medium text-white transition-colors hover:bg-black disabled:opacity-70">{status === "verifying" ? <><Loader2 size={16} className="animate-spin" />Verifying</> : <>Verify and continue<ArrowRight size={16} /></>}</button><div className="flex items-center justify-between border-t border-line pt-4 text-[12px]"><button type="button" onClick={() => resetTo(screen === "signup-code" ? "credentials" : "reset-email")} className="font-medium text-muted hover:text-body">Use a different email</button><button type="button" disabled={resendIn > 0 || status === "verifying" || status === "requesting"} onClick={() => void resendCode()} className="inline-flex items-center gap-1.5 font-medium text-brand-strong disabled:text-faint"><RotateCcw size={12} />{resendIn > 0 ? `Resend in ${resendIn}s` : "Resend code"}</button></div></form>}
+
+        {!resetFlow && mode === "signup" && screen === "credentials" && <p className="mt-4 text-[12px] leading-relaxed text-muted">By continuing, you agree to the <Link href="/terms" className="cursor-pointer font-medium text-brand-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">Terms of Service</Link> and <Link href="/privacy" className="cursor-pointer font-medium text-brand-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">Privacy Policy</Link>.</p>}
 
         {screen === "signup-code" && !error && <p className="mt-4 flex items-start gap-2 rounded-lg border border-brand/30 bg-brand-soft/40 px-3.5 py-2.5 text-[13px] leading-snug text-brand-strong"><Check size={15} className="mt-0.5 shrink-0" />Check spam or promotions if the code does not arrive.</p>}
         {notice && <p className="mt-4 rounded-lg border border-brand/25 bg-brand-soft/35 px-3.5 py-2.5 text-[12px] leading-relaxed text-brand-strong">{notice}</p>}

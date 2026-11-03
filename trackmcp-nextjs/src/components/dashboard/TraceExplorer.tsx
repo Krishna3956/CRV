@@ -394,14 +394,14 @@ export function TraceExplorer({
           </button>
           <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-brand">
             {sampleMode
-              ? "Sample / Trace Explorer"
-              : `${resolvedOriginLabel} / Trace Explorer`}
+              ? "Sample / Evidence details"
+              : `${resolvedOriginLabel} / Evidence details`}
           </p>
           <h2 className="mt-2 text-2xl font-medium tracking-[-0.03em] text-ink">
-            Trace Explorer
+            Evidence details
           </h2>
           <p className="mt-2 max-w-2xl text-sm text-muted">
-            One bounded event at a time, in observed order. Payload details
+            Review one bounded interaction in observed order. Payload details
             remain subject to the capture policy.
           </p>
         </div>

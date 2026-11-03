@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Loader2 } from "lucide-react";
 import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
 import { DashboardApp } from "@/components/dashboard/DashboardApp";
+import { TrackMCPLogo } from "@/components/TrackMCPLogo";
 import { getSupabaseBrowser } from "@/lib/auth/supabase-browser";
 import type { Analytics, ToolQualityResponse } from "@/lib/telemetry/analytics-types";
 import { trackActivationEvent } from "@/lib/marketing-analytics";
@@ -110,12 +112,12 @@ export function DashboardPageContent({ initialView = "overview" }: { initialView
   }, [loadAccount, loadAnalytics, loadToolQuality]);
   const generateKey = async (options?: KeyCreationOptions) => {
     setWorking(true); setError("");
-    try { const workspaceId = selectedWorkspaceId || workspace?.id; if (!workspaceId) throw new Error("Select a workspace before creating a key."); const response = await fetch("/api/v1/account/workspace", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ workspace_id: workspaceId, key_name: `server-${keys.length + 1}`, service_scope: options?.serviceScope || undefined, environment_scope: options?.environmentScope || undefined }) }); const body = await response.json(); if (!response.ok) throw new Error(body.error || "Could not create an API key."); trackActivationEvent("api_key_created", { key_name_category: "server" }); setNewKey(body.api_key); await loadAccount(workspaceId); }
-    catch (reason) { setError(reason instanceof Error ? reason.message : "Could not create an API key."); }
+    try { const workspaceId = selectedWorkspaceId || workspace?.id; if (!workspaceId) throw new Error("Select a workspace before creating a connection key."); const response = await fetch("/api/v1/account/workspace", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ workspace_id: workspaceId, key_name: `server-${keys.length + 1}`, service_scope: options?.serviceScope || undefined, environment_scope: options?.environmentScope || undefined }) }); const body = await response.json(); if (!response.ok) throw new Error(body.error || "Could not create a connection key."); trackActivationEvent("api_key_created", { key_name_category: "server" }); setNewKey(body.api_key); await loadAccount(workspaceId); }
+    catch (reason) { setError(reason instanceof Error ? reason.message : "Could not create a connection key."); }
     finally { setWorking(false); }
   };
   const revokeKey = async (id: string) => {
-    if (!window.confirm("Revoke this key? Any server using it will stop sending telemetry.")) return;
+    if (!window.confirm("Revoke this connection key? Any server using it will stop sending activity.")) return;
     const workspaceId = selectedWorkspaceId || workspace?.id;
     if (!workspaceId) { setError("Select a workspace before revoking a key."); return; }
     const response = await fetch(`/api/v1/account/keys/${id}?workspace_id=${encodeURIComponent(workspaceId)}`, { method: "DELETE" });
@@ -234,8 +236,42 @@ export function DashboardPageContent({ initialView = "overview" }: { initialView
     };
   }, [createWorkspace, loadAccount, loadAnalytics, loadToolQuality]);
 
-  if (loading) return <main className="mx-auto min-h-screen max-w-6xl px-6 py-20 text-sm text-muted">Loading your workspace…</main>;
- if (!email) return <main className="mx-auto min-h-screen max-w-xl px-6 py-24"><p className="text-xs font-semibold uppercase tracking-wide text-brand">TrackMCP dashboard</p><h1 className="mt-3 text-4xl font-medium tracking-tight text-ink">Sign in to open your dashboard.</h1><p className="mt-4 text-muted">Create an API key and see how your MCP server is being used.</p>{error && <p role="alert" className="mt-5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-900">{error}</p>}<div className="mt-7 flex flex-wrap gap-3"><Link href="/signin" className="inline-flex rounded-lg bg-ink px-5 py-3 text-sm font-medium text-white">Sign in to continue</Link>{error && <button type="button" onClick={() => window.location.reload()} className="inline-flex cursor-pointer rounded-lg border border-line-strong bg-white px-5 py-3 text-sm font-medium text-ink hover:bg-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">Refresh</button>}</div></main>;
+ if (loading) return (
+   <main className="dashboard-shell min-h-screen bg-canvas px-6 py-10 text-body sm:py-16" aria-busy="true" aria-live="polite">
+     <div className="mx-auto max-w-4xl">
+       <div className="flex items-center gap-3">
+         <TrackMCPLogo asLink={false} mark size="nav" variant="mono" />
+         <span className="text-xs font-semibold text-muted">Dashboard</span>
+       </div>
+       <section className="mt-10 rounded-2xl border border-line bg-paper p-7 shadow-[0_24px_60px_-44px_rgba(22,163,74,0.14)] sm:p-10">
+         <div className="flex items-start gap-4">
+           <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand-strong">
+             <Loader2 size={20} className="animate-spin" aria-hidden="true" />
+           </span>
+           <div>
+             <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-strong">TrackMCP dashboard</p>
+             <h1 className="mt-2 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">Getting your workspace ready</h1>
+             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">We’re signing you in, loading your workspace, and preparing the dashboard. Your data is not being changed.</p>
+           </div>
+         </div>
+         <div className="mt-8 grid gap-3 border-t border-line pt-6 sm:grid-cols-3" aria-label="Workspace preparation steps">
+           {["Check your account", "Load your workspace", "Open your dashboard"].map((step, index) => (
+             <div key={step} className="flex items-center gap-2 rounded-lg bg-canvas px-3 py-3 text-xs font-medium text-muted">
+               <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-brand-soft text-[11px] font-bold text-brand-strong">{index + 1}</span>
+               {step}
+             </div>
+           ))}
+         </div>
+         <div className="mt-6 grid gap-2" aria-hidden="true">
+           <div className="h-2 w-2/5 animate-pulse rounded-full bg-line" />
+           <div className="h-2 w-4/5 animate-pulse rounded-full bg-line" />
+         </div>
+         <p className="mt-4 text-xs text-faint">This normally takes a few seconds. If it takes longer, refresh or sign in again.</p>
+       </section>
+     </div>
+   </main>
+ );
+ if (!email) return <main className="mx-auto min-h-screen max-w-xl px-6 py-24"><p className="text-xs font-semibold uppercase tracking-wide text-brand">TrackMCP dashboard</p><h1 className="mt-3 text-4xl font-medium tracking-tight text-ink">Open your TrackMCP dashboard.</h1><p className="mt-4 text-muted">Sign in if you already have an account, or create one to connect a server and see how your MCP is being used.</p>{error && <p role="alert" className="mt-5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-900">{error}</p>}<div className="mt-7 flex flex-wrap gap-3"><Link href="/signin" className="inline-flex cursor-pointer rounded-lg bg-ink px-5 py-3 text-sm font-medium text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2">Sign in to continue</Link><Link href="/signup" className="inline-flex cursor-pointer rounded-lg border border-line-strong bg-white px-5 py-3 text-sm font-medium text-ink hover:bg-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2">Create an account</Link>{error && <button type="button" onClick={() => window.location.reload()} className="inline-flex cursor-pointer rounded-lg border border-line-strong bg-white px-5 py-3 text-sm font-medium text-ink hover:bg-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">Refresh</button>}</div></main>;
   const selectWorkspace = async (workspaceId: string) => { if (!workspaceId || workspaceId === selectedWorkspaceId) return; setWorking(true); setError(""); setSelectedWorkspaceId(workspaceId); window.localStorage.setItem("trackmcp.selected_workspace_id", workspaceId); try { const account = await loadAccount(workspaceId); await Promise.all([loadAnalytics("30", account.workspace?.id || workspaceId), loadToolQuality("30", account.workspace?.id || workspaceId)]); } catch (reason) { setError(reason instanceof Error ? reason.message : "Could not switch workspaces."); } finally { setWorking(false); } };
   return <DashboardApp displayName={displayName || email} workspace={workspace} workspaces={workspaces} keys={keys} analytics={analytics} toolQuality={toolQuality} newKey={newKey} working={working} error={error} initialView={initialView} onGenerateKey={generateKey} onRevokeKey={revokeKey} onRotateKey={rotateKey} onDismissKey={() => setNewKey("")} onSelectWorkspace={selectWorkspace} onRefresh={(days) => { if (!LOCAL_DASHBOARD_BYPASS) void Promise.all([loadAnalytics(days, selectedWorkspaceId || undefined), loadToolQuality(days, selectedWorkspaceId || undefined)]).catch((reason) => setError(reason instanceof Error ? reason.message : "Could not refresh analytics.")); }} onCreateWorkspace={createWorkspace} onSignOut={() => { if (LOCAL_DASHBOARD_BYPASS) window.location.href = "https://trackmcp.com"; else void getSupabaseBrowser().auth.signOut().then(() => { window.location.href = "https://trackmcp.com"; }); }} />;
 }
