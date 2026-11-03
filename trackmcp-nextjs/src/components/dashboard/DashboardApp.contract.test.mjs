@@ -258,6 +258,11 @@ test("feature reliability leads with business capability labels", () => {
   assert.match(source, /title=\{tool\.name\}/);
 });
 
+test("capability labels preserve common product acronyms", () => {
+  assert.match(source, /const acronyms = new Set\(\["api", "csv", "http", "mcp", "otel", "sdk", "sse", "url"\]\)/);
+  assert.match(source, /replace\(\/\(\[a-z0-9\]\)\(\[A-Z\]\)\/g, "\$1 \$2"\)/);
+});
+
 test("People empty state explains the live-data prerequisite and routes to Setup", () => {
   assert.match(source, /Account activity will appear after connection/);
   assert.match(source, /verified account-group signal/);

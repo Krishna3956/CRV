@@ -144,9 +144,20 @@ const fmtWeekLabel = (value: string) => {
     ? new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", timeZone: "UTC" }).format(new Date(parsed))
     : value;
 };
-const humanizeCapability = (value: string) => value
-  .replace(/[_-]+/g, " ")
-  .replace(/\b\w/g, (character) => character.toUpperCase());
+const humanizeCapability = (value: string) => {
+  const acronyms = new Set(["api", "csv", "http", "mcp", "otel", "sdk", "sse", "url"]);
+  return value
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/[_-]+/g, " ")
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => {
+      const lower = word.toLowerCase();
+      if (acronyms.has(lower) || /^v\d+$/i.test(word)) return word.toUpperCase();
+      return lower.charAt(0).toUpperCase() + lower.slice(1);
+    })
+    .join(" ");
+};
 const percent = (value: number | null) =>
   value === null || !Number.isFinite(value) ? "N/A" : Math.round(value * 100) + "%";
 
