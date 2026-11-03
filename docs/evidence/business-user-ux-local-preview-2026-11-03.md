@@ -102,6 +102,27 @@ business UX suite, and the production build all passed; the build generated
 - Supabase values were deliberately non-production placeholders.
 - No production credentials, data, deployment, or database writes were used.
 
+## Latest local runtime route check
+
+On the current branch, a local Next.js runtime with placeholder Supabase
+configuration returned HTTP 200 for all nine dashboard surfaces:
+
+- Overview (`view=overview&data=example`)
+- Setup (`view=setup&data=my`)
+- Who's using it (`view=clients&data=example`)
+- What they're doing (`view=capabilities&data=example`)
+- Resources & prompts (`view=resources&data=example`)
+- The journey (`view=journeys&data=example`)
+- Did it work (`view=quality&data=example`)
+- What's broken (`view=issues&data=example`)
+- Evidence (`view=evidence&data=example`)
+
+The same runtime returned HTTP 200 for `/sitemap-index.xml` and
+`/sitemap.xml`. `/tool-sitemap.xml` returned HTTP 503 with
+`Retry-After: 300`, because the placeholder database was intentionally
+unavailable. This is the expected fail-closed behavior: the runtime does not
+serve an empty successful sitemap when its database read cannot complete.
+
 ## First-time My-data state
 
 Route: `/dashboard?view=overview&data=my`
