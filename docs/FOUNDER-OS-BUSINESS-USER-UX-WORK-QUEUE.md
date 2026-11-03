@@ -287,6 +287,9 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       description and keeps the machine-facing tool identifier as secondary
       context; capability detail remains available on demand. Week labels in
       the adoption chart are also formatted for business readers.
+- [x] ✅ Capability labels preserve common product acronyms (`MCP`, `CSV`,
+      `OTEL`, `SDK`, and `SSE`) so business-facing names do not become awkward
+      title-cased protocol words.
 - [x] ✅ What-they’re-doing no-data state now explains that feature activity
       appears after connection and links directly to Setup; it does not imply
       zero adoption when the read model is absent. Full adoption/read-model
@@ -319,6 +322,9 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       when no starts or outcomes exist; it does not turn tool activity or
       missing events into assumed success. Full reliability/outcome read-model
       coverage remains pending authenticated verification.
+- [x] ✅ Feature reliability now leads with business-readable capability names
+      and keeps exact tool identifiers as secondary context for technical
+      follow-up.
 - [ ] What’s broken: affected volume, confidence, likely cause, recommended
       action, and evidence links for every actionable insight.
 - [x] ✅ Empty Issues results now say that no confirmed incidents are not proof
@@ -354,8 +360,9 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 - Baseline commit: `085ae29e07d2f69ed4db3b15986e417e0fe4c86f`.
 - Current implementation: `trackmcp-nextjs/src/components/dashboard/DashboardApp.tsx`.
 - Latest UX verification commits: `346bb7bc` (evidence handoff refresh),
-  `0700c707` (resource/outcome labels), and `7f582337` (feature reliability
-  labels). Focused business UX suite: 108/108; consolidated release gate: 159
+  `0700c707` (resource/outcome labels), `7f582337` (feature reliability
+  labels), and `73abc983` (acronym-safe labels). Focused business UX suite:
+  109/109; consolidated release gate: 159
   suites; production build:
   230 static pages.
 - Setup/account orchestration: `trackmcp-nextjs/src/app/dashboard/page.tsx`.

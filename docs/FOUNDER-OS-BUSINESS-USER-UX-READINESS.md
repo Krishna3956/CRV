@@ -2,13 +2,13 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: `7f582337` (`feat: label feature reliability for business users`)
+Latest verified commit: `73abc983` (`feat: preserve acronyms in business labels`)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,
 and evidence that requires a real account, deployment, or human participant.
 
-Latest branch verification: `npm run test:business-user-ux` passed all 108 suites
+Latest branch verification: `npm run test:business-user-ux` passed all 109 suites
 and the consolidated `npm run test:release-gate` passed all 159 suites on the
 current branch. The synthetic UAT report was restored to its tracked fixture
 value after the gate run. The branch remains local and has not been merged or
@@ -305,7 +305,7 @@ The latest full release gate was rerun after this projection change and passed
 all 159 suites. The generated synthetic fixture timestamp was restored after
 the run; no production data was written.
 
-After the resource/outcome and feature-label revisions, the consolidated release gate
+After the resource/outcome, feature-label, and acronym-safe label revisions, the consolidated release gate
 was rerun and passed all 159 suites. The gate passed in the isolated worktree;
 it does not change the Tier 3 status because authenticated production and
 human business-user UAT evidence are still outstanding.
