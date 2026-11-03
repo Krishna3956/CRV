@@ -3779,8 +3779,11 @@ function QualityView({
             <tbody className="divide-y divide-line">
               {data.tools.map((tool) => (
                 <tr key={tool.name}>
-                  <td className="py-4 font-mono text-xs text-ink">
-                    {tool.name}
+                  <td className="py-4 text-xs text-ink" title={tool.name}>
+                    <span className="font-medium">{humanizeCapability(tool.name)}</span>
+                    <span className="mt-1 block font-mono text-[10px] text-faint">
+                      {tool.name}
+                    </span>
                     <span className="mt-1 block font-sans text-[10px] text-faint">
                       {fmt(tool.observed.call_count)} calls ·{" "}
                       {fmt(tool.observed.session_count)} observed sessions

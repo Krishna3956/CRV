@@ -252,6 +252,12 @@ test("business-facing trend and resource outcomes use plain labels", () => {
   assert.match(source, /fmtWeekLabel\(item\.period_start\)/);
 });
 
+test("feature reliability leads with business capability labels", () => {
+  assert.match(source, /humanizeCapability\(tool\.name\)/);
+  assert.match(source, /<span className="mt-1 block font-mono text-\[10px\] text-faint">/);
+  assert.match(source, /title=\{tool\.name\}/);
+});
+
 test("People empty state explains the live-data prerequisite and routes to Setup", () => {
   assert.match(source, /Account activity will appear after connection/);
   assert.match(source, /verified account-group signal/);
