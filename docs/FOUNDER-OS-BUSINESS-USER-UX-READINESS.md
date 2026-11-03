@@ -2,7 +2,7 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: `9b9f6ece` (`Refresh dashboard emerald palette`)
+Latest verified commit: `b12f52f9` (`Differentiate measured share tracks`)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,
