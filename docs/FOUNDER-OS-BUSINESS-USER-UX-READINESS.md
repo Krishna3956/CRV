@@ -2,13 +2,13 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: `456ad9ee` (`Preserve unavailable read metrics`)
+Latest verified commit: `2d96f2b9` (`Preserve unavailable resource outcome rates`)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,
 and evidence that requires a real account, deployment, or human participant.
 
-Latest branch verification: `npm run test:business-user-ux` passed all 100 suites
+Latest branch verification: `npm run test:business-user-ux` passed all 102 suites
 after the authentication-affordance, research, signed-out handoff, illustrative
 People-growth coherence, setup-vocabulary consistency, evidence-action-label,
 outcome-copy, Quality helper-copy, final route-smoke, and auth-affordance passes.
@@ -25,10 +25,15 @@ The quality no-data path now preserves the same source context and explains
 what will appear after connection instead of presenting a generic failure
 state.
 
+The latest metric-trust pass keeps missing prompt/resource outcome rates
+explicit: `N/A` is shown for unavailable stall, error, and unknown rates rather
+than silently rendering `0%`. This preserves the distinction between a real
+zero and an unavailable projection.
+
 Final current-branch build: `npm run build` passed with 230 static pages
 generated after the dashboard palette revision. TypeScript and ESLint also
 passed. The full `npm run test:release-gate` passed all 159 suites on the
-current branch, and the focused 100-suite business-user contract suite passed
+current branch, and the focused 102-suite business-user contract suite passed
 after the Setup key-density and outcome-interpretation revisions.
 This is still local build evidence; it does not prove a production deployment
 or authenticated production rendering.
