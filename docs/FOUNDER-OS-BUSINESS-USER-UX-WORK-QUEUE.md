@@ -316,9 +316,16 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 
 ## Release gates
 
-- [ ] No formula or read-model changes without metric-contract review.
-- [ ] No business label that overstates self-reported identity.
-- [ ] No “healthy” claim from missing data.
+- [x] ✅ No formula or read-model changes without metric-contract review. The
+      UX branch changes presentation, copy, and evidence tooling only; metric
+      definitions remain in `docs/FOUNDER-OS-METRIC-CONTRACT.md` and the metric
+      contract tests pass.
+- [x] ✅ No business label that overstates self-reported identity. People and
+      client copy remains bounded to observed assistant/account signals; this
+      is covered by the business-user UX and read-model contract tests.
+- [x] ✅ No “healthy” claim from missing data. Empty, unavailable, and
+      insufficient-evidence states remain explicit; the business-user UX suite
+      and full release gate pass this policy.
 - [ ] No deployment until focused tests, production build, and authenticated
       read-only smoke checks pass.
 - [ ] Browser review with a new account and an activated example/data account.
