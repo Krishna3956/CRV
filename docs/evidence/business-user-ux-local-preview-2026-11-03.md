@@ -2,7 +2,7 @@
 
 Date: 2026-11-03
 Branch: `codex/business-user-ux-audit`
-Commit under review: `b12f52f9` (`Differentiate measured share tracks`)
+Commit under review: `54f2a063` (`Align Setup panels with activation steps`)
 
 This is local browser evidence only. It is not production evidence and does
 not replace a fresh-account or real-telemetry walkthrough.
