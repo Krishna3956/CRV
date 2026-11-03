@@ -410,7 +410,7 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
       )}
       <div className="relative hidden overflow-hidden bg-ink lg:block">
         <div className="pointer-events-none absolute inset-0 bg-grid opacity-[0.12]" />
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(60%_100%_at_50%_0%,rgba(79,70,229,0.28),transparent_70%)]" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(60%_100%_at_50%_0%,rgba(22,163,74,0.28),transparent_70%)]" />
         <div className="relative flex h-full flex-col justify-center px-14">
           <TrackMCPMark size={40} className="text-white" />
           <h2 className="mt-6 max-w-[16ch] text-[34px] font-medium leading-[1.1] tracking-[-0.02em] text-white">See how your MCP server is being used</h2>
