@@ -30,12 +30,14 @@ Date: 2026-11-03
 - [x] Simplify Resources & prompts so the business summary leads and method-level
   evidence stays behind one optional disclosure; the displayed breakdowns remain
   sourced from `resource_prompt_activity` and `interaction_surfaces`.
-- [ ] Simplify the remaining high-density views (Setup, Evidence) using the same
-  rule: one business question per section, technical detail collapsed, and no
-  duplicate explanatory cards.
-- [ ] Add or tighten focused contract tests for each simplification without
-  changing the typed analytics contract.
-- [ ] Re-run the full release gate and production smoke after the next UI slice.
+- [x] Simplify Setup so the primary status stays focused on the next action while
+  backend-driven caveats, first-event scope, lag, and next steps remain in one
+  optional technical disclosure.
+- [x] Keep Evidence focused on one bounded observed-session table with trace
+  links; incident and sample detail remain explicit secondary paths.
+- [x] Run focused contract tests for the Setup simplification without changing
+  the typed analytics contract.
+- [x] Re-run the full release gate and production smoke after the Setup slice.
 
 ## Later, not silently included
 
@@ -51,8 +53,8 @@ queries, as described in `docs/dashboard-backend-gap-audit-2026-11.md`.
 
 ## Release evidence (2026-11-03)
 
-- App Runner deployment workflow `41623263856` completed successfully for
-  release `f48c79976396fa89dc60e18d55044bb37d8853cf`.
+- App Runner deployment workflow `41627297056` completed successfully for
+  release `9adbff5c5ebd2021e8914c3a0cf98612b5a816be`.
 - `https://trackmcp.com/api/health` returned HTTP 200 and the same release SHA.
 - `/dashboard` overview, Resources & prompts, Setup, and Evidence example-mode
   routes each returned HTTP 200.
