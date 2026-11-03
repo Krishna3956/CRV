@@ -233,7 +233,9 @@ is branch evidence until the deployed dashboard is reviewed.
 The `Did it work` no-data/error path now keeps the selected source visible and
 uses separate My-data and Example-data recovery explanations. A missing quality
 response is not presented as a health result; this is a presentation-only
-change with no metric or formula change.
+change with no metric or formula change. The fallback description names the
+selected source explicitly, so an Example-data failure cannot be mislabeled as
+a My-data failure.
 
 After the loading-state and palette revisions, the consolidated release gate
 was rerun and passed all 159 suites. The gate passed in the isolated worktree;

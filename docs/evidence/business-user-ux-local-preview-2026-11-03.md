@@ -973,7 +973,8 @@ quality response is unavailable. My-data mode explains that explicit outcomes
 and feature reliability appear after the server connects; Example mode explains
 that the illustrative response needs to be retried. The loading state does not
 present a missing response as healthy or unhealthy, and no metric or formula
-changed.
+changed. Its fallback description also names the selected source explicitly, so
+an Example-data failure cannot be mislabeled as a My-data failure.
 
 Verification:
 

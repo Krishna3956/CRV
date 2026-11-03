@@ -1902,11 +1902,13 @@ function LiveDataState({
   onRetry,
   permission,
   onUseExample,
+  description,
 }: {
   message: string;
   onRetry: () => void;
   permission: boolean;
   onUseExample?: () => void;
+  description?: string;
 }) {
   return (
     <section className="grid min-h-[420px] place-items-center rounded-2xl border border-line bg-white p-8 text-center shadow-[0_24px_60px_-44px_rgba(22,163,74,0.14)]">
@@ -1918,9 +1920,9 @@ function LiveDataState({
           {permission ? "You cannot view this workspace" : message}
         </h2>
         <p className="mt-2 text-sm leading-relaxed text-muted">
-          {permission
+          {description || (permission
             ? "Request access or return to your workspace. No other data source was substituted."
-            : "My data could not be shown for this request. Try again or narrow the selected period."}
+            : "My data could not be shown for this request. Try again or narrow the selected period.")}
         </p>
         <div className="mt-5 flex flex-wrap justify-center gap-3">
           <button
@@ -3703,6 +3705,9 @@ function QualityView({
           message={dataMode === "my" ? "Quality data could not be loaded" : "Example quality data could not be loaded"}
           onRetry={onRefresh}
           permission={false}
+          description={dataMode === "my"
+            ? "Your workspace quality response could not be shown for this request. Try again or narrow the selected period."
+            : "The illustrative quality response could not be shown for this request. Try again; no live workspace data was substituted."}
         />
       </div>
     );

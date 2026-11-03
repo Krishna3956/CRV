@@ -190,6 +190,7 @@ test("quality no-data states preserve source context and next-step meaning", () 
   assert.match(qualitySource, /Quality appears after your server connects/);
   assert.match(qualitySource, /Example quality data is unavailable/);
   assert.match(qualitySource, /A loading problem is not evidence that the server is healthy or unhealthy/);
+  assert.match(qualitySource, /no live workspace data was substituted/);
 });
 
 test("business users receive orientation before technical detail", () => {
