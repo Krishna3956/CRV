@@ -187,11 +187,11 @@ body:has([data-site-nav]) .global-language-switcher {
   --color-faint: #a1a1aa;
   --color-line: #e4e4e7;
   --color-line-strong: #d4d4d8;
-  --color-brand: #2f7d5b;
-  --color-brand-strong: #256b4b;
-  --color-brand-soft: #e8f3ec;
-  --color-mint: #eef4f0;
-  --color-mint-ink: #285e43;
+  --color-brand: #3a9169;
+  --color-brand-strong: #2f7d5b;
+  --color-brand-soft: #edf7f1;
+  --color-mint: #f2f8f4;
+  --color-mint-ink: #2e6b4e;
 }
 
 /* Every enabled interactive control exposes the same pointer affordance,
@@ -291,7 +291,7 @@ button:disabled {
 .dashboard-shell select:focus-visible,
 .dashboard-shell textarea:focus-visible {
   border-color: var(--color-brand);
-  box-shadow: 0 0 0 3px rgba(22,163,74,0.16);
+  box-shadow: 0 0 0 3px rgba(58,145,105,0.18);
 }
 
 @layer utilities {
