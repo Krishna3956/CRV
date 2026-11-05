@@ -152,3 +152,12 @@ The live App Runner release can temporarily differ from `main`, including
 after a rollback. Before starting a new task, the coordinator verifies the
 running release SHA and chooses the correct base commit. Do not assume that
 the current `main` commit is the code running in production.
+
+At task start, inspect open pull requests and registered worktrees for
+overlapping work. Report any overlap to the coordinator before editing. The
+coordinator owns task assignments and integration order.
+
+The owner cancelled the Chinese SEO plan on 2026-11-06. Do not revive its
+routes, sitemaps, hreflang, Baidu targeting, or archived task branches unless
+the owner explicitly requests a new Chinese SEO project. Existing Chinese
+localization is a separate feature.

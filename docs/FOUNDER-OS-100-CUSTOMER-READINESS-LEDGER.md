@@ -1051,9 +1051,11 @@
 - [x] Translation contracts, focused lint, and the 210-route production build
   passed; the persistent localization ledger and terminology glossary are in
   `trackmcp-nextjs/docs/`.
-- [ ] Full page-by-page linguistic review, Chinese SEO/hreflang inventory,
-  Baidu/mainland reachability evidence, and native-speaker acceptance remain
-  open. Automated translation tests do not prove native-level quality.
+- [ ] Full page-by-page linguistic review and native-speaker acceptance remain
+  open for the existing Chinese localization. Automated translation tests do
+  not prove native-level quality.
+- [x] The owner cancelled the Chinese SEO/hreflang and Baidu targeting plan
+  on 2026-11-06; it is no longer an open work item.
 
 ## 2026-10-29 — scheduled rate-limit cleanup secret regression fixed and reverified
 
