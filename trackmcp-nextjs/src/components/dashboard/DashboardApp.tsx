@@ -20,8 +20,7 @@ import {
   LayoutGrid,
   ListChecks,
   LogOut,
-  PanelLeftClose,
-  PanelLeftOpen,
+  PanelLeft,
   RefreshCw,
   RotateCcw,
   Route,
@@ -1357,24 +1356,14 @@ export function DashboardApp({
       {!preview && <div className="border-b border-amber-200 bg-amber-50 px-4 py-3 text-center text-xs leading-relaxed text-amber-900 lg:hidden" role="status">
         The TrackMCP dashboard is supported on desktop browsers for this pilot. For the full navigation and data tables, open TrackMCP on a desktop-sized browser window.
       </div>}
-      {!sidebarCollapsed && <aside className={(preview ? "absolute " : "fixed ") + "bottom-0 left-0 top-[52px] z-30 hidden w-[248px] border-r border-line bg-white lg:flex lg:flex-col"}>
-        {!preview && <div className="flex justify-end px-3 pb-1 pt-3">
-          <button
-            type="button"
-            onClick={() => setSidebarCollapsed(true)}
-            aria-label="Close sidebar"
-            title="Close sidebar"
-            className="grid h-8 w-8 cursor-pointer place-items-center rounded-md text-muted hover:bg-paper hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
-          >
-            <PanelLeftClose size={17} aria-hidden="true" />
-          </button>
-        </div>}
+      <aside className={(preview ? "absolute " : "fixed ") + "bottom-0 left-0 top-[52px] z-30 hidden border-r border-line bg-white lg:flex lg:flex-col " + (sidebarCollapsed ? "w-[68px]" : "w-[248px]")}>
         <DashboardNav
           view={view}
           items={primaryNav}
           onNavigate={goTo}
           label="Primary navigation"
           groupLabel="Understand"
+          collapsed={sidebarCollapsed}
         />
         <DashboardNav
           view={view}
@@ -1382,6 +1371,7 @@ export function DashboardApp({
           onNavigate={goTo}
           label="Outcome navigation"
           groupLabel="Outcome"
+          collapsed={sidebarCollapsed}
         />
         <DashboardNav
           view={view}
@@ -1389,6 +1379,7 @@ export function DashboardApp({
           onNavigate={goTo}
           label="Investigation navigation"
           groupLabel="Investigate"
+          collapsed={sidebarCollapsed}
         />
         {!sampleOnly && (
           <DashboardNav
@@ -1397,44 +1388,48 @@ export function DashboardApp({
             onNavigate={goTo}
             label="Configuration navigation"
             groupLabel="Configure"
+            collapsed={sidebarCollapsed}
           />
         )}
-        {!sampleOnly && <div className="mt-auto border-t border-line p-3">
+        {!sampleOnly && <div className={"mt-auto border-t border-line " + (sidebarCollapsed ? "p-2" : "p-3")}>
           <button
             type="button"
             onClick={onSignOut}
-            className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] text-muted hover:bg-paper hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+            aria-label={sidebarCollapsed ? "Sign out" : undefined}
+            title={sidebarCollapsed ? "Sign out" : undefined}
+            className={"flex w-full cursor-pointer items-center rounded-lg py-2.5 text-[13px] text-muted hover:bg-paper hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand " + (sidebarCollapsed ? "justify-center" : "gap-3 px-3")}
           >
             <LogOut size={16} />
-            Sign out
+            {!sidebarCollapsed && "Sign out"}
           </button>
-          <div className="mt-3 flex items-center gap-2 border-t border-line px-2 pt-3">
-            <span className="grid h-7 w-7 place-items-center rounded-full bg-brand-soft text-[10px] font-bold text-brand-strong">
+          <div className={"mt-3 flex items-center border-t border-line pt-3 " + (sidebarCollapsed ? "justify-center" : "gap-2 px-2")}>
+            <span title={sidebarCollapsed ? displayName : undefined} className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-brand-soft text-[10px] font-bold text-brand-strong">
               {displayName.slice(0, 1).toUpperCase()}
             </span>
-            <span className="min-w-0 truncate text-[11.5px] text-muted">
+            {!sidebarCollapsed && <span className="min-w-0 truncate text-[11.5px] text-muted">
               {displayName}
-            </span>
+            </span>}
           </div>
         </div>}
-      </aside>}
+      </aside>
       <div className={
         (preview ? "h-full overflow-x-hidden overflow-y-auto pt-[96px] " : "pt-[96px] ") +
-        (sidebarCollapsed ? "lg:pl-0" : "lg:pl-[248px]") +
+        (sidebarCollapsed ? "lg:pl-[68px]" : "lg:pl-[248px]") +
         " lg:pt-[52px]"
       }>
         <header data-site-nav className={preview ? "absolute left-0 right-0 top-0 z-40 flex min-h-[52px] flex-wrap items-center justify-between gap-2 border-b border-line bg-white/95 px-4 py-2 shadow-[0_1px_0_rgba(15,23,42,0.03)] backdrop-blur sm:px-8 lg:h-[52px] lg:flex-nowrap lg:py-0" : "fixed left-0 right-0 top-0 z-40 flex min-h-[52px] flex-wrap items-center justify-between gap-2 border-b border-line bg-white/95 px-4 py-2 shadow-[0_1px_0_rgba(15,23,42,0.03)] backdrop-blur sm:px-8 lg:h-[52px] lg:flex-nowrap lg:py-0"}>
           <div className="flex min-w-0 flex-1 items-center gap-2">
-            {!preview && sidebarCollapsed && <button
+            <TrackMCPLogo asLink={false} mark size="footer" variant="green" />
+            {!preview && <button
               type="button"
-              onClick={() => setSidebarCollapsed(false)}
-              aria-label="Open sidebar"
-              title="Open sidebar"
+              onClick={() => setSidebarCollapsed((collapsed) => !collapsed)}
+              aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              aria-expanded={!sidebarCollapsed}
+              title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
               className="hidden h-8 w-8 cursor-pointer place-items-center rounded-md text-muted hover:bg-paper hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand lg:grid"
             >
-              <PanelLeftOpen size={17} aria-hidden="true" />
+              <PanelLeft size={18} aria-hidden="true" />
             </button>}
-            <TrackMCPLogo asLink={false} mark size="footer" variant="green" />
             {workspaces.length > 1 && (
               <label className="flex min-w-0 items-center gap-2 text-[11px] text-muted">
                 <span className="sr-only">Workspace</span>
@@ -1658,16 +1653,18 @@ function DashboardNav({
   onNavigate,
   label,
   groupLabel,
+  collapsed = false,
 }: {
   view: View;
   items: NavItem[];
   onNavigate: (view: View) => void;
   label: string;
   groupLabel: string;
+  collapsed?: boolean;
 }) {
   return (
-    <nav aria-label={label} className={groupLabel ? "mt-3 px-3" : "mt-4 px-3"}>
-      {groupLabel && (
+    <nav aria-label={label} className={groupLabel ? "mt-3 " + (collapsed ? "px-2" : "px-3") : "mt-4 " + (collapsed ? "px-2" : "px-3")}>
+      {groupLabel && !collapsed && (
         <p className="mb-1 px-2.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-faint">
           {groupLabel}
         </p>
@@ -1677,9 +1674,12 @@ function DashboardNav({
           type="button"
           key={item.id}
           aria-current={view === item.id ? "page" : undefined}
+          aria-label={collapsed ? item.label : undefined}
+          title={collapsed ? item.label : undefined}
           onClick={() => onNavigate(item.id)}
           className={
-            "mb-0.5 flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left text-[12px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand " +
+            "mb-0.5 flex w-full cursor-pointer items-center rounded-lg py-1.5 text-[12px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand " +
+            (collapsed ? "justify-center px-1.5" : "gap-2.5 px-2.5 text-left") + " " +
             (view === item.id
               ? "bg-brand-strong text-white shadow-[0_8px_20px_-14px_rgba(22,163,74,0.28)]"
               : "text-muted hover:bg-paper hover:text-ink")
@@ -1691,7 +1691,7 @@ function DashboardNav({
           }>
             <item.icon size={15} strokeWidth={view === item.id ? 2.2 : 1.8} />
           </span>
-          <NavItemLabel item={item} />
+          {!collapsed && <NavItemLabel item={item} />}
         </button>
       ))}
     </nav>
