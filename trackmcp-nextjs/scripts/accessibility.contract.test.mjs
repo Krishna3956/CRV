@@ -51,7 +51,7 @@ test("primary pilot flows retain keyboard focus and reduced-motion contracts", (
   assert.match(nav, /aria-controls="site-mobile-menu"/);
   assert.match(nav, /id="site-mobile-menu"/);
   assert.match(nav, /<Link[\s\S]*href="\/signin"[\s\S]*signInLabel/);
-  assert.match(nav, /<LanguageSwitcher\s*\/>[\s\S]*<\/div>/);
+  assert.doesNotMatch(nav, /<LanguageSwitcher\s*\/>/);
   for (const href of ["/docs/typescript", "/docs/python", "/docs/go", "/docs/dotnet", "/docs/opentelemetry", "/docs/protocol"]) {
     assert.match(dashboard, new RegExp(`href="${href}"`));
   }

@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { Menu, X, ChevronDown, Sparkles, TrendingUp, Boxes, Plus, Library } from "lucide-react";
 import { TrackMCPLogo } from "./TrackMCPLogo";
 import { EarlyAccessButton } from "./EarlyAccessButton";
-import { LanguageSwitcher } from "./LanguageSwitcher";
 import { usePathname } from "next/navigation";
 
 const links = [
@@ -118,9 +117,6 @@ export function Nav() {
         </nav>
 
         <div className="flex items-center gap-3">
-          <div className="hidden md:block">
-            <LanguageSwitcher />
-          </div>
           <Link
             href="/signin"
             className="hidden text-[15px] text-body transition-colors hover:text-ink sm:block"
@@ -183,12 +179,8 @@ export function Nav() {
               >
                 {signInLabel}
               </Link>
-              <LanguageSwitcher />
             </div>
             <EarlyAccessButton size="sm" className="mt-3 w-full" />
-            <div className="border-t border-line pt-3">
-              <LanguageSwitcher />
-            </div>
           </div>
         </div>
       )}

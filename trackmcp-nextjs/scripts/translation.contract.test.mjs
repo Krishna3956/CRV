@@ -14,10 +14,8 @@ test("root layout exposes a route-aware global language switcher and runtime", a
   assert.match(globalSwitcher, /\/onboarding/);
   assert.match(globalSwitcher, /return null/);
   const nav = await readFile(resolve(root, "src/components/Nav.tsx"), "utf8");
-  assert.match(nav, /import \{ LanguageSwitcher \} from "\.\/LanguageSwitcher"/);
-  assert.match(nav, /<LanguageSwitcher\s*\/>/);
-  assert.match(nav, /<div className="hidden md:block">\s*<LanguageSwitcher\s*\/>/);
-  assert.match(nav, /className="border-t border-line pt-3">\s*<LanguageSwitcher\s*\/>/);
+  assert.doesNotMatch(nav, /import \{ LanguageSwitcher \} from "\.\/LanguageSwitcher"/);
+  assert.doesNotMatch(nav, /<LanguageSwitcher\s*\/>/);
   const dashboard = await readFile(resolve(root, "src/components/dashboard/DashboardApp.tsx"), "utf8");
   assert.match(dashboard, /@\/components\/LanguageSwitcher/);
   assert.match(dashboard, /<LanguageSwitcher\s*\/>/);

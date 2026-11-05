@@ -164,6 +164,14 @@ body:has([data-site-nav]) .global-language-switcher {
   text-decoration: none !important;
 }
 
+/* The brand mark is intentionally never outlined when it receives focus;
+ * this prevents the recurring green browser/focus border around the logo. */
+.trackmcp-logo:focus,
+.trackmcp-logo:focus-visible {
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+
 /* Dashboard product typography: Inter for UI, Geist Mono only for code/IDs. */
 .dashboard-shell,
 .dashboard-shell button,
@@ -220,6 +228,18 @@ body:has([data-site-nav]) .global-language-switcher {
 .dashboard-shell .dashboard-chart-amber { color: var(--dash-amber); background-color: var(--dash-amber); }
 .dashboard-shell .dashboard-chart-coral { color: var(--dash-coral); background-color: var(--dash-coral); }
 .dashboard-shell .dashboard-chart-slate { color: var(--dash-slate); background-color: var(--dash-slate); }
+
+
+/* The journey view uses the site's green brand language, including any
+   reusable accent/chart classes rendered inside its panels. */
+.dashboard-shell[data-dashboard-view="journeys"] .dashboard-accent-violet {
+  color: var(--dash-green);
+  background-color: var(--dash-green-soft);
+}
+.dashboard-shell[data-dashboard-view="journeys"] .dashboard-chart-violet {
+  color: var(--dash-green);
+  background-color: var(--dash-green);
+}
 
 /* Every enabled interactive control exposes the same pointer affordance,
    including public tools, auth, docs, and repository surfaces. */
@@ -290,7 +310,7 @@ button:disabled {
 .dashboard-shell[data-dashboard-view="clients"] .dashboard-section-title::before,
 .dashboard-shell[data-dashboard-view="capabilities"] .dashboard-section-title::before,
 .dashboard-shell[data-dashboard-view="resources"] .dashboard-section-title::before { background: var(--dash-teal); }
-.dashboard-shell[data-dashboard-view="journeys"] .dashboard-section-title::before { background: var(--dash-violet); }
+.dashboard-shell[data-dashboard-view="journeys"] .dashboard-section-title::before { background: var(--dash-green); }
 .dashboard-shell[data-dashboard-view="quality"] .dashboard-section-title::before { background: var(--dash-green); }
 .dashboard-shell[data-dashboard-view="issues"] .dashboard-section-title::before { background: var(--dash-coral); }
 .dashboard-shell[data-dashboard-view="evidence"] .dashboard-section-title::before { background: var(--dash-slate); }
@@ -302,7 +322,7 @@ button:disabled {
 .dashboard-shell[data-dashboard-view="clients"] [data-dashboard-kpi-icon],
 .dashboard-shell[data-dashboard-view="capabilities"] [data-dashboard-kpi-icon],
 .dashboard-shell[data-dashboard-view="resources"] [data-dashboard-kpi-icon] { color: var(--dash-teal); background: var(--dash-teal-soft); }
-.dashboard-shell[data-dashboard-view="journeys"] [data-dashboard-kpi-icon] { color: var(--dash-violet); background: var(--dash-violet-soft); }
+.dashboard-shell[data-dashboard-view="journeys"] [data-dashboard-kpi-icon] { color: var(--dash-green); background: var(--dash-green-soft); }
 .dashboard-shell[data-dashboard-view="quality"] [data-dashboard-kpi-icon] { color: var(--dash-green); background: var(--dash-green-soft); }
 .dashboard-shell[data-dashboard-view="issues"] [data-dashboard-kpi-icon] { color: var(--dash-coral); background: var(--dash-coral-soft); }
 .dashboard-shell[data-dashboard-view="evidence"] [data-dashboard-kpi-icon] { color: var(--dash-slate); background: var(--dash-slate-soft); }
