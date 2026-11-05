@@ -42,6 +42,7 @@ import type {
 import type { AlertDeliveryAttempt, AlertIncident } from "@/lib/alerts/types";
 import { TrackMCPLogo } from "@/components/TrackMCPLogo";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { DemoIntegrationCta } from "@/components/dashboard/DemoIntegrationCta";
 import { TraceExplorer } from "@/components/dashboard/TraceExplorer";
 import {
   TOOL_QUALITY_MIN_CATALOG_CALLS,
@@ -462,6 +463,56 @@ function writeRouteState(
     "",
     path + (query ? "?" + query : ""),
   );
+}
+
+function dashboardNodeToMarkdown(node: Node): string {
+  if (node.nodeType === Node.TEXT_NODE) {
+    return (node.textContent || "").replace(/\s+/g, " ");
+  }
+  if (!(node instanceof HTMLElement)) return "";
+
+  const tag = node.tagName.toLowerCase();
+  if (
+    node.hidden ||
+    node.getAttribute("aria-hidden") === "true" ||
+    ["button", "input", "select", "textarea", "svg", "script", "style", "summary", "nav"].includes(tag) ||
+    (tag === "details" && !(node as HTMLDetailsElement).open)
+  ) return "";
+
+  if (tag === "br") return "\n";
+  if (tag === "hr") return "\n---\n";
+  if (/^h[1-6]$/.test(tag)) {
+    const level = Number(tag.slice(1));
+    const content = Array.from(node.childNodes).map(dashboardNodeToMarkdown).join("").trim();
+    return `\n${"#".repeat(level)} ${content}\n\n`;
+  }
+  if (tag === "table") {
+    const rows = Array.from(node.querySelectorAll("tr")).map((row) =>
+      Array.from(row.cells).map((cell) =>
+        Array.from(cell.childNodes).map(dashboardNodeToMarkdown).join("").trim().replaceAll("|", "\\|"),
+      ),
+    );
+    if (!rows.length) return "";
+    const header = rows[0];
+    const separator = header.map(() => "---");
+    return `\n| ${header.join(" | ")} |\n| ${separator.join(" | ")} |\n${rows.slice(1).map((row) => `| ${row.join(" | ")} |`).join("\n")}\n\n`;
+  }
+
+  const children = Array.from(node.childNodes).map(dashboardNodeToMarkdown);
+  if (tag === "p") return `${children.join("").trim()}\n\n`;
+  if (tag === "li") return `- ${children.join("").trim()}\n`;
+  if (["div", "section", "article", "main", "header", "ul", "ol", "details"].includes(tag)) {
+    return children.filter((child) => child.trim()).join("\n");
+  }
+  return children.join("");
+}
+
+function dashboardPageMarkdown(root: HTMLElement, title: string, range: string) {
+  const rangeLabel = range.startsWith("custom:")
+    ? "Custom date range"
+    : `Last ${range} days`;
+  const body = dashboardNodeToMarkdown(root).replace(/\n{3,}/g, "\n\n").trim();
+  return `# ${title}\n\n**Example data · ${rangeLabel}**\n\n${body}\n`;
 }
 
 const EXAMPLE_ANALYTICS: Analytics = {
@@ -1037,6 +1088,7 @@ export function DashboardApp({
   const [actionQueueError, setActionQueueError] = useState("");
   const [actionQueueMutation, setActionQueueMutation] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [pageCopyState, setPageCopyState] = useState<"idle" | "copied" | "error">("idle");
   const view = controlledView ?? internalView;
   const hasActiveKey = keys.some((key) => !key.revoked_at);
   const isExample = dataMode === "example";
@@ -1265,6 +1317,21 @@ export function DashboardApp({
     }
   };
 
+  const copyCurrentPageMarkdown = async () => {
+    const main = document.querySelector<HTMLElement>(".dashboard-shell main");
+    if (!main) return;
+    try {
+      await navigator.clipboard.writeText(
+        dashboardPageMarkdown(main, viewLabels[view], range),
+      );
+      setPageCopyState("copied");
+      window.setTimeout(() => setPageCopyState("idle"), 1800);
+    } catch {
+      setPageCopyState("error");
+      window.setTimeout(() => setPageCopyState("idle"), 2400);
+    }
+  };
+
   const pageControls =
     view === "issues" ? null : (
       <PageControls
@@ -1383,6 +1450,19 @@ export function DashboardApp({
             )}
           </div>
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+            {sampleOnly && !preview && <>
+              <button
+                type="button"
+                onClick={() => void copyCurrentPageMarkdown()}
+                aria-label={`Copy ${viewLabels[view]} as Markdown`}
+                title={`Copy ${viewLabels[view]} as Markdown`}
+                className="inline-flex h-9 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md border border-line-strong bg-white px-3 text-[12px] font-semibold text-body transition-colors hover:bg-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+              >
+                {pageCopyState === "copied" ? <Check size={14} aria-hidden="true" /> : <Clipboard size={14} aria-hidden="true" />}
+                {pageCopyState === "copied" ? "Copied" : pageCopyState === "error" ? "Copy failed" : `Copy ${viewLabels[view]} as Markdown`}
+              </button>
+              <DemoIntegrationCta>Integrate your agent</DemoIntegrationCta>
+            </>}
             {sampleOnly ? <ExampleDataBadge /> : <DataModeToggle dataMode={dataMode} onChange={setDataMode} />}
             {!preview && !sampleOnly && <LanguageSwitcher />}
           </div>
