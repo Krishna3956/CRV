@@ -23,7 +23,7 @@ export const SERVER_ACTIVATION_EVENT_TYPES = new Set([
 // ledger: docs views/CTAs, auth starts, copy failures, and CLI device lifecycle
 // events are operational or anonymous product signals rather than activation
 // facts accepted by the server contract.
-const SERVER_ACTIVATION_SOURCES = new Set(["npm", "sdk_docs", "github", "ai", "trackmcp", "direct", "device", "unknown"]);
+const SERVER_ACTIVATION_SOURCES = new Set(["npm", "sdk_docs", "github", "ai", "direct", "device", "unknown"]);
 const SERVER_RESULT_CATEGORIES = new Set(["event_found", "no_event", "unauthorized", "permission_denied", "retryable_error", "unknown"]);
 const ACTIVATION_EVENT_PROPERTIES: Record<string, readonly string[]> = {
   sdk_docs_viewed: ["path", "source"],
