@@ -20,6 +20,8 @@ import {
   LayoutGrid,
   ListChecks,
   LogOut,
+  PanelLeftClose,
+  PanelLeftOpen,
   RefreshCw,
   RotateCcw,
   Route,
@@ -1022,6 +1024,7 @@ export function DashboardApp({
     string | null
   >(null);
   const [traceOrigin, setTraceOrigin] = useState<View>("evidence");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [incidentId, setIncidentId] = useState<string | null>(null);
   const [alertIncidents, setAlertIncidents] = useState<AlertIncident[]>([]);
   const [alertLoadState, setAlertLoadState] =
@@ -1287,7 +1290,18 @@ export function DashboardApp({
       {!preview && <div className="border-b border-amber-200 bg-amber-50 px-4 py-3 text-center text-xs leading-relaxed text-amber-900 lg:hidden" role="status">
         The TrackMCP dashboard is supported on desktop browsers for this pilot. For the full navigation and data tables, open TrackMCP on a desktop-sized browser window.
       </div>}
-      <aside className={(preview ? "absolute " : "fixed ") + "bottom-0 left-0 top-[52px] z-30 hidden w-[248px] border-r border-line bg-white lg:flex lg:flex-col"}>
+      {!sidebarCollapsed && <aside className={(preview ? "absolute " : "fixed ") + "bottom-0 left-0 top-[52px] z-30 hidden w-[248px] border-r border-line bg-white lg:flex lg:flex-col"}>
+        {!preview && <div className="flex justify-end px-3 pb-1 pt-3">
+          <button
+            type="button"
+            onClick={() => setSidebarCollapsed(true)}
+            aria-label="Close sidebar"
+            title="Close sidebar"
+            className="grid h-8 w-8 cursor-pointer place-items-center rounded-md text-muted hover:bg-paper hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+          >
+            <PanelLeftClose size={17} aria-hidden="true" />
+          </button>
+        </div>}
         <DashboardNav
           view={view}
           items={primaryNav}
@@ -1336,10 +1350,23 @@ export function DashboardApp({
             </span>
           </div>
         </div>}
-      </aside>
-      <div className={preview ? "h-full overflow-x-hidden overflow-y-auto pt-[96px] lg:pl-[248px] lg:pt-[52px]" : "pt-[96px] lg:pl-[248px] lg:pt-[52px]"}>
+      </aside>}
+      <div className={
+        (preview ? "h-full overflow-x-hidden overflow-y-auto pt-[96px] " : "pt-[96px] ") +
+        (sidebarCollapsed ? "lg:pl-0" : "lg:pl-[248px]") +
+        " lg:pt-[52px]"
+      }>
         <header data-site-nav className={preview ? "absolute left-0 right-0 top-0 z-40 flex min-h-[52px] flex-wrap items-center justify-between gap-2 border-b border-line bg-white/95 px-4 py-2 shadow-[0_1px_0_rgba(15,23,42,0.03)] backdrop-blur sm:px-8 lg:h-[52px] lg:flex-nowrap lg:py-0" : "fixed left-0 right-0 top-0 z-40 flex min-h-[52px] flex-wrap items-center justify-between gap-2 border-b border-line bg-white/95 px-4 py-2 shadow-[0_1px_0_rgba(15,23,42,0.03)] backdrop-blur sm:px-8 lg:h-[52px] lg:flex-nowrap lg:py-0"}>
           <div className="flex min-w-0 flex-1 items-center gap-2">
+            {!preview && sidebarCollapsed && <button
+              type="button"
+              onClick={() => setSidebarCollapsed(false)}
+              aria-label="Open sidebar"
+              title="Open sidebar"
+              className="hidden h-8 w-8 cursor-pointer place-items-center rounded-md text-muted hover:bg-paper hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand lg:grid"
+            >
+              <PanelLeftOpen size={17} aria-hidden="true" />
+            </button>}
             <TrackMCPLogo asLink={false} mark size="footer" variant="green" />
             {workspaces.length > 1 && (
               <label className="flex min-w-0 items-center gap-2 text-[11px] text-muted">
