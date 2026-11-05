@@ -9,6 +9,7 @@ import {
   Blocks,
   CalendarDays,
   Check,
+  ChevronLeft,
   ChevronRight,
   Clipboard,
   ExternalLink,
@@ -20,7 +21,6 @@ import {
   LayoutGrid,
   ListChecks,
   LogOut,
-  PanelLeft,
   RefreshCw,
   RotateCcw,
   Route,
@@ -115,7 +115,7 @@ const configureNav: NavItem[] = [
   { id: "setup", label: "Setup", icon: Settings2, accent: "amber" },
 ];
 const allNav = primaryNav.concat(outcomeNav, investigationNav, configureNav);
-const demoNav = primaryNav.concat(outcomeNav, investigationNav);
+const demoNav = primaryNav.concat(outcomeNav, investigationNav, configureNav);
 const viewLabels: Record<View, string> = Object.fromEntries(
   allNav.map((item) => [item.id, item.label]),
 ) as Record<View, string>;
@@ -462,56 +462,6 @@ function writeRouteState(
     "",
     path + (query ? "?" + query : ""),
   );
-}
-
-function dashboardNodeToMarkdown(node: Node): string {
-  if (node.nodeType === Node.TEXT_NODE) {
-    return (node.textContent || "").replace(/\s+/g, " ");
-  }
-  if (!(node instanceof HTMLElement)) return "";
-
-  const tag = node.tagName.toLowerCase();
-  if (
-    node.hidden ||
-    node.getAttribute("aria-hidden") === "true" ||
-    ["button", "input", "select", "textarea", "svg", "script", "style", "summary", "nav"].includes(tag) ||
-    (tag === "details" && !(node as HTMLDetailsElement).open)
-  ) return "";
-
-  if (tag === "br") return "\n";
-  if (tag === "hr") return "\n---\n";
-  if (/^h[1-6]$/.test(tag)) {
-    const level = Number(tag.slice(1));
-    const content = Array.from(node.childNodes).map(dashboardNodeToMarkdown).join("").trim();
-    return `\n${"#".repeat(level)} ${content}\n\n`;
-  }
-  if (tag === "table") {
-    const rows = Array.from(node.querySelectorAll("tr")).map((row) =>
-      Array.from(row.cells).map((cell) =>
-        Array.from(cell.childNodes).map(dashboardNodeToMarkdown).join("").trim().replaceAll("|", "\\|"),
-      ),
-    );
-    if (!rows.length) return "";
-    const header = rows[0];
-    const separator = header.map(() => "---");
-    return `\n| ${header.join(" | ")} |\n| ${separator.join(" | ")} |\n${rows.slice(1).map((row) => `| ${row.join(" | ")} |`).join("\n")}\n\n`;
-  }
-
-  const children = Array.from(node.childNodes).map(dashboardNodeToMarkdown);
-  if (tag === "p") return `${children.join("").trim()}\n\n`;
-  if (tag === "li") return `- ${children.join("").trim()}\n`;
-  if (["div", "section", "article", "main", "header", "ul", "ol", "details"].includes(tag)) {
-    return children.filter((child) => child.trim()).join("\n");
-  }
-  return children.join("");
-}
-
-function dashboardPageMarkdown(root: HTMLElement, title: string, range: string) {
-  const rangeLabel = range.startsWith("custom:")
-    ? "Custom date range"
-    : `Last ${range} days`;
-  const body = dashboardNodeToMarkdown(root).replace(/\n{3,}/g, "\n\n").trim();
-  return `# ${title}\n\n**Example data · ${rangeLabel}**\n\n${body}\n`;
 }
 
 const EXAMPLE_ANALYTICS: Analytics = {
@@ -1087,7 +1037,6 @@ export function DashboardApp({
   const [actionQueueError, setActionQueueError] = useState("");
   const [actionQueueMutation, setActionQueueMutation] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const [pageCopyState, setPageCopyState] = useState<"idle" | "copied" | "error">("idle");
   const view = controlledView ?? internalView;
   const hasActiveKey = keys.some((key) => !key.revoked_at);
   const isExample = dataMode === "example";
@@ -1316,21 +1265,6 @@ export function DashboardApp({
     }
   };
 
-  const copyCurrentPageMarkdown = async () => {
-    const main = document.querySelector<HTMLElement>(".dashboard-shell main");
-    if (!main) return;
-    try {
-      await navigator.clipboard.writeText(
-        dashboardPageMarkdown(main, viewLabels[view], range),
-      );
-      setPageCopyState("copied");
-      window.setTimeout(() => setPageCopyState("idle"), 1800);
-    } catch {
-      setPageCopyState("error");
-      window.setTimeout(() => setPageCopyState("idle"), 2400);
-    }
-  };
-
   const pageControls =
     view === "issues" ? null : (
       <PageControls
@@ -1381,15 +1315,20 @@ export function DashboardApp({
           groupLabel="Investigate"
           collapsed={sidebarCollapsed}
         />
-        {!sampleOnly && (
-          <DashboardNav
-            view={view}
-            items={configureNav}
-            onNavigate={goTo}
-            label="Configuration navigation"
-            groupLabel="Configure"
-            collapsed={sidebarCollapsed}
-          />
+        <DashboardNav
+          view={view}
+          items={configureNav}
+          onNavigate={goTo}
+          label="Configuration navigation"
+          groupLabel="Configure"
+          collapsed={sidebarCollapsed}
+        />
+        {sampleOnly && !preview && (
+          <div className={"mt-auto border-t border-line " + (sidebarCollapsed ? "p-2" : "p-3")}>
+            <DemoIntegrationCta label="Integrate your MCP" compact={sidebarCollapsed}>
+              Integrate your MCP
+            </DemoIntegrationCta>
+          </div>
         )}
         {!sampleOnly && <div className={"mt-auto border-t border-line " + (sidebarCollapsed ? "p-2" : "p-3")}>
           <button
@@ -1428,7 +1367,7 @@ export function DashboardApp({
               title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
               className="hidden h-8 w-8 cursor-pointer place-items-center rounded-md text-muted hover:bg-paper hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand lg:grid"
             >
-              <PanelLeft size={18} aria-hidden="true" />
+              {sidebarCollapsed ? <ChevronRight size={18} aria-hidden="true" /> : <ChevronLeft size={18} aria-hidden="true" />}
             </button>}
             {workspaces.length > 1 && (
               <label className="flex min-w-0 items-center gap-2 text-[11px] text-muted">
@@ -1445,20 +1384,7 @@ export function DashboardApp({
             )}
           </div>
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-            {sampleOnly && !preview && <>
-              <button
-                type="button"
-                onClick={() => void copyCurrentPageMarkdown()}
-                aria-label={`Copy ${viewLabels[view]} as Markdown`}
-                title={`Copy ${viewLabels[view]} as Markdown`}
-                className="inline-flex h-9 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md border border-line-strong bg-white px-3 text-[12px] font-semibold text-body transition-colors hover:bg-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
-              >
-                {pageCopyState === "copied" ? <Check size={14} aria-hidden="true" /> : <Clipboard size={14} aria-hidden="true" />}
-                {pageCopyState === "copied" ? "Copied" : pageCopyState === "error" ? "Copy failed" : `Copy ${viewLabels[view]} as Markdown`}
-              </button>
-              <DemoIntegrationCta>Integrate your agent</DemoIntegrationCta>
-            </>}
-            {sampleOnly ? <ExampleDataBadge /> : <DataModeToggle dataMode={dataMode} onChange={setDataMode} />}
+            {!sampleOnly && <DataModeToggle dataMode={dataMode} onChange={setDataMode} />}
             {!preview && !sampleOnly && <LanguageSwitcher />}
           </div>
         </header>
@@ -1747,18 +1673,6 @@ function DataModeToggle({
         {dataMode === "my" ? "Live workspace" : "Guided example"}
       </span>
     </div>
-  );
-}
-
-function ExampleDataBadge() {
-  return (
-    <span
-      className="inline-flex items-center gap-2 rounded-md border border-brand/25 bg-brand-soft px-3 py-2 text-[11px] font-semibold text-brand-strong"
-      aria-label="Example data only"
-    >
-      <span className="h-1.5 w-1.5 rounded-full bg-brand" aria-hidden="true" />
-      Example data
-    </span>
   );
 }
 

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import DemoDashboard from "@/app/demo/DemoDashboard";
 import { pageMeta } from "@/lib/seo";
 
@@ -9,6 +10,13 @@ export const metadata: Metadata = pageMeta({
   index: false,
 });
 
-export default function DemoPage() {
+export default async function DemoPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const { demo } = await searchParams;
+  if (demo !== "true") redirect("/signup");
+
   return <DemoDashboard />;
 }

@@ -7,7 +7,15 @@ import { getSupabaseBrowser } from "@/lib/auth/supabase-browser";
 import { authCallbackUrl, safeAuthNext } from "@/lib/auth/redirect";
 import { discoverAuthProviders } from "@/lib/auth/provider-discovery.mjs";
 
-export function DemoIntegrationCta({ children }: { children: ReactNode }) {
+export function DemoIntegrationCta({
+  children,
+  label,
+  compact = false,
+}: {
+  children: ReactNode;
+  label: string;
+  compact?: boolean;
+}) {
   const router = useRouter();
   const [googleAvailable, setGoogleAvailable] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(false);
@@ -55,13 +63,14 @@ export function DemoIntegrationCta({ children }: { children: ReactNode }) {
       <button
         type="button"
         onClick={() => void startGoogleSignup()}
-        aria-label="Integrate your agent with Google"
+        aria-label={`${label} with Google`}
+        title={label}
         aria-busy={googleAvailable === null || loading}
         disabled={googleAvailable === null || loading}
-        className="inline-flex h-9 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md bg-brand-strong px-3.5 text-[12px] font-semibold text-white shadow-sm transition-colors hover:bg-brand-strong/90 disabled:cursor-wait disabled:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+        className={"inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md bg-brand-strong text-[12px] font-semibold text-white shadow-sm transition-colors hover:bg-brand-strong/90 disabled:cursor-wait disabled:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 " + (compact ? "h-10 w-10 px-0" : "h-10 w-full px-3.5")}
       >
-        {loading ? <Loader2 size={14} className="animate-spin" aria-hidden="true" /> : children}
-        {!loading && <ArrowRight size={14} aria-hidden="true" />}
+        {loading ? <Loader2 size={14} className="animate-spin" aria-hidden="true" /> : compact ? <ArrowRight size={15} aria-hidden="true" /> : children}
+        {!compact && !loading && <ArrowRight size={14} aria-hidden="true" />}
       </button>
       {error && (
         <p role="alert" className="absolute right-0 top-full z-50 mt-2 w-64 rounded-lg border border-line bg-white p-3 text-[12px] leading-relaxed text-body shadow-lg">
