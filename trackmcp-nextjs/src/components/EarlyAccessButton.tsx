@@ -33,10 +33,16 @@ export function EarlyAccessButton({
   className?: string;
 }) {
   const pathname = usePathname() || "/";
+  const surface = contentSurface(pathname);
+  const contentSlug = `${surface}_${label.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "")}`.slice(0, 96);
   const signupParams = new URLSearchParams({
     content_path: pathname,
     content_cta: label,
-    content_surface: contentSurface(pathname),
+    content_surface: surface,
+    utm_source: "trackmcp",
+    utm_medium: "content",
+    utm_campaign: "inbound_lead_funnel",
+    utm_content: contentSlug,
   });
   const signupHref = `/signup?${signupParams.toString()}`;
 
@@ -44,7 +50,7 @@ export function EarlyAccessButton({
     const attribution = {
       content_path: pathname,
       content_cta: label,
-      content_surface: contentSurface(pathname),
+      content_surface: surface,
     };
     saveContentAttribution(attribution);
     trackMarketingEvent("content_cta_clicked", attribution);

@@ -2,6 +2,7 @@ import type { ArtKey } from "./art";
 import { nextBatch } from "./next-batch";
 import { wave2 } from "./wave2";
 import { analyticsBatch } from "./analytics-batch";
+import { inboundLeadPosts } from "./inbound-wave";
 
 export type Block =
   | { t: "p"; c: string }
@@ -58,6 +59,7 @@ export const posts: Post[] = [
   ...nextBatch,
   ...wave2,
   ...analyticsBatch,
+  ...inboundLeadPosts,
   {
     slug: "trackmcp-cli-activation-release",
     title: "TrackMCP CLI Activation: A Faster Path from Install to First Signal",

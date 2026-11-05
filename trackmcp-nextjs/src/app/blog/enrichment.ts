@@ -24,6 +24,34 @@ const note = (title: string, c: string, after: number) => ({
 });
 
 export const enrichment: Record<string, Enrichment> = {
+  "mcp-analytics-for-product-teams": {
+    art: "buyer-cover",
+    takeaways: [
+      "Separate connection, catalog, invocation, result, and explicit outcome evidence.",
+      "Use metric contracts with denominators, caveats, and an action for every KPI.",
+      "Treat TrackMCP as the server-boundary evidence layer that complements logs and APM.",
+    ],
+    inserts: [
+      {
+        after: 5,
+        block: { t: "figure", art: "adoption-detail", c: "An adoption funnel should become more specific at every step: connection, discovery, selection, execution, recovery, and explicit outcome." },
+      },
+    ],
+  },
+  "mcp-tool-call-failure-diagnosis": {
+    art: "errors",
+    takeaways: [
+      "Classify the first broken boundary instead of stopping at HTTP 200.",
+      "Preserve bounded evidence for connection, authorization, discovery, execution, result, retry, and outcome state.",
+      "Close an incident on explicit workflow evidence, not only a returned tool response.",
+    ],
+    inserts: [
+      {
+        after: 6,
+        block: { t: "figure", art: "taxonomy-detail", c: "The first broken boundary determines the next owner: connection, protocol, authorization, discovery, execution, result, or workflow." },
+      },
+    ],
+  },
   ...nextBatchEnrichment,
   ...wave2Enrichment,
   ...analyticsBatchEnrichment,
