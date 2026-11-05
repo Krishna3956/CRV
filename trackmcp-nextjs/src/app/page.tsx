@@ -71,9 +71,8 @@ export default function Home() {
 
             <Reveal delay={0.14}>
               <p className="mx-auto mt-5 max-w-[58ch] text-[16px] leading-[1.5] text-muted sm:text-[18px]">
-                Track configured server-boundary observations: which AI clients
-                connect, which tools they use, explicit workflow outcomes, and
-                evidence worth investigating. Start with one integration line.
+                See which AI clients connect, which tools they use, explicit
+                workflow outcomes, and evidence worth investigating.
               </p>
             </Reveal>
 

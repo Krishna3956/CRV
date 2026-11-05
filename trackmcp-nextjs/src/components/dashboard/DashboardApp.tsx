@@ -1333,7 +1333,7 @@ export function DashboardApp({
           </div>
         </div>
       </aside>
-      <div className={preview ? "h-full overflow-y-auto pt-[96px] lg:pl-[248px] lg:pt-[52px]" : "pt-[96px] lg:pl-[248px] lg:pt-[52px]"}>
+      <div className={preview ? "h-full overflow-x-hidden overflow-y-auto pt-[96px] lg:pl-[248px] lg:pt-[52px]" : "pt-[96px] lg:pl-[248px] lg:pt-[52px]"}>
         <header data-site-nav className={preview ? "absolute left-0 right-0 top-0 z-40 flex min-h-[52px] flex-wrap items-center justify-between gap-2 border-b border-line bg-white/95 px-4 py-2 shadow-[0_1px_0_rgba(15,23,42,0.03)] backdrop-blur sm:px-8 lg:h-[52px] lg:flex-nowrap lg:py-0" : "fixed left-0 right-0 top-0 z-40 flex min-h-[52px] flex-wrap items-center justify-between gap-2 border-b border-line bg-white/95 px-4 py-2 shadow-[0_1px_0_rgba(15,23,42,0.03)] backdrop-blur sm:px-8 lg:h-[52px] lg:flex-nowrap lg:py-0"}>
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <TrackMCPLogo asLink={false} mark size="footer" variant="green" />
@@ -1353,7 +1353,7 @@ export function DashboardApp({
           </div>
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             {sampleOnly ? <ExampleDataBadge /> : <DataModeToggle dataMode={dataMode} onChange={setDataMode} />}
-            <LanguageSwitcher />
+            {!preview && <LanguageSwitcher />}
           </div>
         </header>
         {!preview && <div className="border-b border-line bg-white px-4 py-2.5 lg:hidden">
@@ -1376,7 +1376,10 @@ export function DashboardApp({
             ))}
           </div>
         </div>}
-        <main className="mx-auto max-w-[1440px] px-5 py-6 sm:px-8 sm:py-8">
+        <main
+          className="mx-auto max-w-[1440px] px-5 py-6 sm:px-8 sm:py-8"
+          style={preview ? { zoom: 0.875 } : undefined}
+        >
           {error && (
             <ErrorBanner message={error} onRetry={retryError} retryLabel={retryErrorLabel} />
           )}
