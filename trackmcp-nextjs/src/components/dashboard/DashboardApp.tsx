@@ -113,6 +113,7 @@ const configureNav: NavItem[] = [
   { id: "setup", label: "Setup", icon: Settings2, accent: "amber" },
 ];
 const allNav = primaryNav.concat(outcomeNav, investigationNav, configureNav);
+const demoNav = primaryNav.concat(outcomeNav, investigationNav);
 const viewLabels: Record<View, string> = Object.fromEntries(
   allNav.map((item) => [item.id, item.label]),
 ) as Record<View, string>;
@@ -1267,6 +1268,7 @@ export function DashboardApp({
         range={range}
         onRangeChange={selectRange}
         onRefresh={refreshAll}
+        showRefresh={!sampleOnly}
       />
     );
 
@@ -1307,14 +1309,16 @@ export function DashboardApp({
           label="Investigation navigation"
           groupLabel="Investigate"
         />
-        <DashboardNav
-          view={view}
-          items={configureNav}
-          onNavigate={goTo}
-          label="Configuration navigation"
-          groupLabel="Configure"
-        />
-        <div className="mt-auto border-t border-line p-3">
+        {!sampleOnly && (
+          <DashboardNav
+            view={view}
+            items={configureNav}
+            onNavigate={goTo}
+            label="Configuration navigation"
+            groupLabel="Configure"
+          />
+        )}
+        {!sampleOnly && <div className="mt-auto border-t border-line p-3">
           <button
             type="button"
             onClick={onSignOut}
@@ -1331,7 +1335,7 @@ export function DashboardApp({
               {displayName}
             </span>
           </div>
-        </div>
+        </div>}
       </aside>
       <div className={preview ? "h-full overflow-x-hidden overflow-y-auto pt-[96px] lg:pl-[248px] lg:pt-[52px]" : "pt-[96px] lg:pl-[248px] lg:pt-[52px]"}>
         <header data-site-nav className={preview ? "absolute left-0 right-0 top-0 z-40 flex min-h-[52px] flex-wrap items-center justify-between gap-2 border-b border-line bg-white/95 px-4 py-2 shadow-[0_1px_0_rgba(15,23,42,0.03)] backdrop-blur sm:px-8 lg:h-[52px] lg:flex-nowrap lg:py-0" : "fixed left-0 right-0 top-0 z-40 flex min-h-[52px] flex-wrap items-center justify-between gap-2 border-b border-line bg-white/95 px-4 py-2 shadow-[0_1px_0_rgba(15,23,42,0.03)] backdrop-blur sm:px-8 lg:h-[52px] lg:flex-nowrap lg:py-0"}>
@@ -1353,12 +1357,12 @@ export function DashboardApp({
           </div>
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             {sampleOnly ? <ExampleDataBadge /> : <DataModeToggle dataMode={dataMode} onChange={setDataMode} />}
-            {!preview && <LanguageSwitcher />}
+            {!preview && !sampleOnly && <LanguageSwitcher />}
           </div>
         </header>
         {!preview && <div className="border-b border-line bg-white px-4 py-2.5 lg:hidden">
           <div className="flex gap-1 overflow-x-auto" role="navigation" aria-label="Dashboard navigation">
-            {allNav.map((item) => (
+            {(sampleOnly ? demoNav : allNav).map((item) => (
               <button
                 type="button"
                 key={item.id}
@@ -1730,23 +1734,27 @@ function PageControls({
   range,
   onRangeChange,
   onRefresh,
+  showRefresh = true,
 }: {
   range: string;
   onRangeChange: (range: string) => void;
   onRefresh: () => void;
+  showRefresh?: boolean;
 }) {
   return (
     <div className="flex flex-wrap items-center gap-2">
       <DateRange value={range} onChange={onRangeChange} />
-      <button
-        type="button"
-        onClick={onRefresh}
-        aria-label="Refresh dashboard data"
-        title="Refresh data"
-        className="grid h-9 w-9 cursor-pointer place-items-center rounded-md border border-line text-muted hover:bg-paper hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
-      >
-        <RefreshCw size={15} />
-      </button>
+      {showRefresh && (
+        <button
+          type="button"
+          onClick={onRefresh}
+          aria-label="Refresh dashboard data"
+          title="Refresh data"
+          className="grid h-9 w-9 cursor-pointer place-items-center rounded-md border border-line text-muted hover:bg-paper hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+        >
+          <RefreshCw size={15} />
+        </button>
+      )}
     </div>
   );
 }

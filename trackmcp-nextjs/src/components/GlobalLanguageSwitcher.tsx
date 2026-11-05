@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 
-const APP_ROUTES = ["/dashboard", "/onboarding"];
+const APP_ROUTES = ["/dashboard", "/demo", "/onboarding"];
 
 export function GlobalLanguageSwitcher() {
   const pathname = usePathname();
