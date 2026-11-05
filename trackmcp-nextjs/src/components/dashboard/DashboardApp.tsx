@@ -176,11 +176,120 @@ const EXAMPLE_SERVER = {
 };
 
 const EXAMPLE_EVIDENCE_STEPS = [
-  { time: "10:42:00", action: "Session started", detail: "Claude connected", status: "Observed" },
+  { time: "10:42:00", action: "Session started", detail: "Claude Desktop connected", status: "Observed" },
   { time: "10:42:01", action: "find_invoice", detail: "Invoice #1048 found", status: "Success" },
   { time: "10:42:03", action: "create_report", detail: "A/R summary requested", status: "Success" },
   { time: "10:42:04", action: "Workflow completed", detail: "Explicit outcome reported", status: "Completed" },
 ];
+
+const EXAMPLE_PERIOD_DAYS = 30;
+const EXAMPLE_END_DATE = "2026-11-05";
+
+function distribute(total: number, weights: number[]): number[] {
+  if (weights.length === 0) return [];
+  const positiveWeights = weights.map((weight) => Math.max(0, weight));
+  const weightTotal = positiveWeights.reduce((sum, weight) => sum + weight, 0);
+  if (weightTotal === 0) return weights.map((_, index) => index === 0 ? total : 0);
+
+  const exact = positiveWeights.map((weight) => (total * weight) / weightTotal);
+  const values = exact.map(Math.floor);
+  const remaining = total - values.reduce((sum, value) => sum + value, 0);
+  const remainders = exact
+    .map((value, index) => ({ index, fraction: value - values[index] }))
+    .sort((a, b) => b.fraction - a.fraction || a.index - b.index);
+  for (let index = 0; index < remaining; index += 1) values[remainders[index].index] += 1;
+  return values;
+}
+
+function exampleTimeline(days: number, events: number, calls: number, errors: number) {
+  const weights = Array.from({ length: days }, (_, index) => {
+    const weeklyCycle = 0.84 + ((index * 7 + 3) % 11) * 0.035;
+    const weekdayLift = index % 7 === 1 || index % 7 === 2 ? 1.12 : 1;
+    return weeklyCycle * weekdayLift;
+  });
+  const eventCounts = distribute(events, weights);
+  const callCounts = distribute(calls, weights);
+  const errorCounts = distribute(errors, weights);
+  const [year, month, date] = EXAMPLE_END_DATE.split("-").map(Number);
+  const end = Date.UTC(year, month - 1, date);
+  return weights.map((_, index) => {
+    const day = new Date(end - (days - index - 1) * 24 * 60 * 60 * 1000);
+    return {
+      date: day.toISOString().slice(0, 10),
+      events: eventCounts[index],
+      calls: callCounts[index],
+      errors: errorCounts[index],
+    };
+  });
+}
+
+const EXAMPLE_SCENARIO = {
+  protocol_families: [
+    { family: "tasks" as const, observations: 8600 },
+    { family: "sampling" as const, observations: 2740 },
+    { family: "completion" as const, observations: 1860 },
+    { family: "elicitation" as const, observations: 940 },
+    { family: "subscriptions" as const, observations: 2260 },
+    { family: "resources" as const, observations: 14880 },
+    { family: "prompts" as const, observations: 6540 },
+  ],
+  catalog_events: 4200,
+  sessions: 8420,
+  workflow_associated_calls: 62900,
+  account_groups: 1820,
+  previous_account_groups: 1540,
+  tools: [
+    { name: "find_invoice", description: "Find an invoice by customer, reference, or date.", calls: 18420, errors: 281, avg_ms: 220, p50_ms: 180, p95_ms: 480 },
+    { name: "run_query", description: "Run a bounded finance query against the connected ledger.", calls: 15780, errors: 362, avg_ms: 640, p50_ms: 520, p95_ms: 1420 },
+    { name: "get_customer_balance", description: "Retrieve the current balance for a customer account.", calls: 12640, errors: 190, avg_ms: 280, p50_ms: 230, p95_ms: 650 },
+    { name: "create_report", description: "Create an accounts-receivable summary report.", calls: 10860, errors: 324, avg_ms: 420, p50_ms: 360, p95_ms: 920 },
+    { name: "list_accounts", description: "List customer accounts available to the connected user.", calls: 8490, errors: 146, avg_ms: 190, p50_ms: 150, p95_ms: 390 },
+    { name: "export_csv", description: "Export the selected report rows as CSV.", calls: 6740, errors: 172, avg_ms: 300, p50_ms: 260, p95_ms: 610 },
+    { name: "search_vendor", description: "Search the vendor directory by name or tax identifier.", calls: 4820, errors: 121, avg_ms: 250, p50_ms: 205, p95_ms: 570 },
+    { name: "reconcile_transactions", description: "Compare ledger entries with imported bank transactions.", calls: 2960, errors: 112, avg_ms: 780, p50_ms: 640, p95_ms: 1810 },
+    { name: "forecast_cash_flow", description: "Build a short-term cash-flow forecast from open items.", calls: 1940, errors: 98, avg_ms: 910, p50_ms: 760, p95_ms: 2200 },
+    { name: "get_payment_status", description: "Check the status of a payment by reference.", calls: 1220, errors: 58, avg_ms: 310, p50_ms: 260, p95_ms: 720 },
+    { name: "bulk_export", description: "Prepare a bounded bulk export for a selected reporting period.", calls: 720, errors: 50, avg_ms: 1280, p50_ms: 940, p95_ms: 3400 },
+    { name: "sync_vendor_payments", description: "Synchronize vendor payment status for a selected account.", calls: 370, errors: 32, avg_ms: 490, p50_ms: 410, p95_ms: 1040 },
+  ],
+  clients: [
+    { name: "Claude", weight: 18420 },
+    { name: "Claude Code", weight: 13210 },
+    { name: "Cursor", weight: 11860 },
+    { name: "ChatGPT", weight: 10200 },
+    { name: "ChatGPT Enterprise", weight: 7100 },
+    { name: "Gemini CLI", weight: 5100 },
+    { name: "Gemini", weight: 4600 },
+    { name: "VS Code Copilot", weight: 3600 },
+    { name: "Windsurf", weight: 2700 },
+    { name: "Cline", weight: 1850 },
+    { name: "Roo Code", weight: 1370 },
+    { name: "Continue", weight: 1050 },
+    { name: "Zed AI", weight: 820 },
+    { name: "Goose", weight: 650 },
+    { name: "OpenHands", weight: 540 },
+    { name: "JetBrains AI", weight: 440 },
+    { name: "Sourcegraph Cody", weight: 350 },
+    { name: "Other observed", weight: 700 },
+    { name: "Unrecognized", weight: 400 },
+  ],
+  outcomes: [
+    { name: "invoice_lookup", started: 6800, completed: 5700, failed: 360 },
+    { name: "report_creation", started: 4900, completed: 3700, failed: 480 },
+    { name: "account_balance", started: 5900, completed: 4700, failed: 290 },
+    { name: "finance_export", started: 3300, completed: 2315, failed: 350 },
+  ],
+};
+
+const EXAMPLE_TOOL_CALLS = EXAMPLE_SCENARIO.tools.reduce((sum, tool) => sum + tool.calls, 0);
+const EXAMPLE_TOOL_ERRORS = EXAMPLE_SCENARIO.tools.reduce((sum, tool) => sum + tool.errors, 0);
+const EXAMPLE_PROTOCOL_EVENTS = EXAMPLE_SCENARIO.protocol_families.reduce((sum, family) => sum + family.observations, 0);
+const EXAMPLE_TOTAL_EVENTS = EXAMPLE_TOOL_CALLS + EXAMPLE_PROTOCOL_EVENTS + EXAMPLE_SCENARIO.catalog_events;
+const EXAMPLE_ADVERTISED_TOOLS = EXAMPLE_SCENARIO.tools.length + 2;
+const EXAMPLE_ACCOUNT_GROUPS = EXAMPLE_SCENARIO.account_groups;
+const EXAMPLE_COMPLETED = EXAMPLE_SCENARIO.outcomes.reduce((sum, outcome) => sum + outcome.completed, 0);
+const EXAMPLE_FAILED = EXAMPLE_SCENARIO.outcomes.reduce((sum, outcome) => sum + outcome.failed, 0);
+const EXAMPLE_WORKFLOW_STARTS = EXAMPLE_SCENARIO.outcomes.reduce((sum, outcome) => sum + outcome.started, 0);
 
 const EXAMPLE_ALERT_INCIDENTS: AlertIncident[] = [
   {
@@ -193,23 +302,13 @@ const EXAMPLE_ALERT_INCIDENTS: AlertIncident[] = [
     severity: "warning",
     scope: { tool_name: "run_query", environment: "production" },
     data_status: "sufficient",
-    baseline: {
-      numerator: 420,
-      denominator: 1200,
-      value: 0.35,
-      window: { start: "2026-08-30T00:00:00.000Z", end: "2026-09-06T00:00:00.000Z" },
-    },
-    comparison: {
-      numerator: 180,
-      denominator: 300,
-      value: 0.6,
-      window: { start: "2026-09-06T00:00:00.000Z", end: "2026-09-07T00:00:00.000Z" },
-    },
-    threshold: { warning_delta: 0.1, critical_delta: 0.2 },
+    baseline: { numerator: 3900, denominator: 3900, value: 860, window: { start: "2026-10-15T00:00:00.000Z", end: "2026-10-22T00:00:00.000Z" } },
+    comparison: { numerator: 1500, denominator: 1500, value: 1420, window: { start: "2026-10-22T00:00:00.000Z", end: "2026-10-29T00:00:00.000Z" } },
+    threshold: { warning_delta_ms: 100, critical_delta_ms: 250, warning_multiple: 1.5, critical_multiple: 2 },
     reasons: [],
-    evidence: { baseline_p95_ms: 420, comparison_p95_ms: 1400 },
-    first_seen_at: "2026-09-06T11:30:00.000Z",
-    last_seen_at: "2026-09-07T10:42:00.000Z",
+    evidence: { baseline_p95_ms: 860, comparison_p95_ms: 1420 },
+    first_seen_at: "2026-10-22T11:30:00.000Z",
+    last_seen_at: "2026-10-29T10:42:00.000Z",
     acknowledged_at: null,
     resolved_at: null,
     suppressed_reason: null,
@@ -224,31 +323,21 @@ const EXAMPLE_ALERT_INCIDENTS: AlertIncident[] = [
     identity: "example-error-regression",
     metric: "tool_error_rate_spike",
     state: "resolved",
-    severity: "critical",
+    severity: "warning",
     scope: { tool_name: "create_report", environment: "production" },
     data_status: "sufficient",
-    baseline: {
-      numerator: 4,
-      denominator: 160,
-      value: 0.025,
-      window: { start: "2026-08-30T00:00:00.000Z", end: "2026-09-06T00:00:00.000Z" },
-    },
-    comparison: {
-      numerator: 11,
-      denominator: 60,
-      value: 0.183,
-      window: { start: "2026-09-06T00:00:00.000Z", end: "2026-09-07T00:00:00.000Z" },
-    },
-    threshold: { critical_delta: 0.2 },
+    baseline: { numerator: 55, denominator: 2200, value: 0.025, window: { start: "2026-10-15T00:00:00.000Z", end: "2026-10-22T00:00:00.000Z" } },
+    comparison: { numerator: 154, denominator: 1100, value: 0.14, window: { start: "2026-10-22T00:00:00.000Z", end: "2026-10-29T00:00:00.000Z" } },
+    threshold: { warning_delta: 0.1, critical_delta: 0.2 },
     reasons: [],
     evidence: { recovery_confirmed: true },
-    first_seen_at: "2026-09-05T08:15:00.000Z",
-    last_seen_at: "2026-09-06T16:20:00.000Z",
+    first_seen_at: "2026-10-22T08:15:00.000Z",
+    last_seen_at: "2026-10-29T16:20:00.000Z",
     acknowledged_at: null,
-    resolved_at: "2026-09-06T17:00:00.000Z",
+    resolved_at: "2026-10-30T17:00:00.000Z",
     suppressed_reason: null,
-    recovery: { recovered_at: "2026-09-06T17:00:00.000Z", value: 0.03 },
-    last_delivered_at: "2026-09-05T08:20:00.000Z",
+    recovery: { recovered_at: "2026-10-30T17:00:00.000Z", value: 0.03 },
+    last_delivered_at: "2026-10-22T08:20:00.000Z",
     revision: 2,
   },
   {
@@ -259,15 +348,15 @@ const EXAMPLE_ALERT_INCIDENTS: AlertIncident[] = [
     metric: "workflow_completion_drop",
     state: "insufficient_data",
     severity: null,
-    scope: { tool_name: "export_report", environment: "production" },
+    scope: { tool_name: "sync_vendor_payments", environment: "production" },
     data_status: "insufficient_data",
     baseline: null,
     comparison: null,
     threshold: { minimum_workflow_starts: 20 },
     reasons: ["below_minimum_volume"],
     evidence: { workflow_starts: 8 },
-    first_seen_at: "2026-09-07T09:10:00.000Z",
-    last_seen_at: "2026-09-07T09:10:00.000Z",
+    first_seen_at: "2026-11-02T09:10:00.000Z",
+    last_seen_at: "2026-11-02T09:10:00.000Z",
     acknowledged_at: null,
     resolved_at: null,
     suppressed_reason: null,
@@ -284,23 +373,13 @@ const EXAMPLE_ALERT_INCIDENTS: AlertIncident[] = [
     severity: "warning",
     scope: { tool_name: "find_invoice", environment: "production" },
     data_status: "sufficient",
-    baseline: {
-      numerator: 6,
-      denominator: 220,
-      value: 0.027,
-      window: { start: "2026-08-30T00:00:00.000Z", end: "2026-09-06T00:00:00.000Z" },
-    },
-    comparison: {
-      numerator: 13,
-      denominator: 180,
-      value: 0.072,
-      window: { start: "2026-09-06T00:00:00.000Z", end: "2026-09-07T00:00:00.000Z" },
-    },
-    threshold: { warning_delta: 0.1 },
+    baseline: { numerator: 120, denominator: 4000, value: 0.03, window: { start: "2026-10-15T00:00:00.000Z", end: "2026-10-22T00:00:00.000Z" } },
+    comparison: { numerator: 180, denominator: 1300, value: 180 / 1300, window: { start: "2026-10-22T00:00:00.000Z", end: "2026-10-29T00:00:00.000Z" } },
+    threshold: { warning_delta: 0.1, warning_multiple: 1.5 },
     reasons: [],
     evidence: { cooldown_hours: 6 },
-    first_seen_at: "2026-09-06T12:00:00.000Z",
-    last_seen_at: "2026-09-06T12:00:00.000Z",
+    first_seen_at: "2026-10-22T12:00:00.000Z",
+    last_seen_at: "2026-10-22T12:00:00.000Z",
     acknowledged_at: null,
     resolved_at: null,
     suppressed_reason: "Cooldown active after a recent notification",
@@ -465,160 +544,153 @@ function writeRouteState(
 }
 
 const EXAMPLE_ANALYTICS: Analytics = {
-  range_days: 30,
-  total_events: 1620,
-  protocol_events: 290,
-  catalog_events: 42,
-  protocol_versions: ["2025-11-25"],
+  range_days: EXAMPLE_PERIOD_DAYS,
+  total_events: EXAMPLE_TOTAL_EVENTS,
+  protocol_events: EXAMPLE_PROTOCOL_EVENTS,
+  catalog_events: EXAMPLE_SCENARIO.catalog_events,
+  protocol_versions: ["2025-11-25", "2025-06-18"],
   services: ["quickbooks-finance-mcp"],
   environments: ["production"],
-  deployment_summary: { observed_deployments: 2, linked_events: 118, limitation: "Count-only deployment linkage derived from telemetry; deployment names, IDs, and release health are not exposed here." },
+  deployment_summary: { observed_deployments: 18, linked_events: 8640, limitation: "Count-only deployment linkage derived from telemetry; deployment names, IDs, and release health are not exposed here." },
   account_summary: {
-    observed_account_keys: 18,
-    active_account_keys: 18,
-    active_account_keys_7d: 11,
-    returning_account_keys: 9,
-    account_activity_bands: { one_event: 5, repeat: 8, high_activity: 5 },
-    eligible_events: 148,
-    resolver_linked_events: 132,
-    unresolved_events: 16,
-    resolver_coverage: 132 / 148,
+    observed_account_keys: 2480,
+    active_account_keys: EXAMPLE_ACCOUNT_GROUPS,
+    active_account_keys_7d: 1160,
+    returning_account_keys: 1120,
+    account_activity_bands: { one_event: 410, repeat: 820, high_activity: 590 },
+    eligible_events: 18200,
+    resolver_linked_events: 16420,
+    unresolved_events: 1780,
+    resolver_coverage: 16420 / 18200,
     limitation: "Observed resolver-linked account keys are privacy-safe dimensions, not named customers or unique people.",
   },
-  protocol_signals: { notification: 4, progress: 8, cancelled: 1, catalog_changed: 6, resource_changed: 2, subscription_started: 2, subscription_stopped: 1, observed_events: 24 },
-  protocol_family_activity: [{ family: "tasks", observations: 12 }, { family: "sampling", observations: 7 }, { family: "completion", observations: 4 }],
+  protocol_signals: { notification: 6200, progress: 9300, cancelled: 840, catalog_changed: 2100, resource_changed: 600, subscription_started: 740, subscription_stopped: 720, observed_events: 20500 },
+  protocol_family_activity: EXAMPLE_SCENARIO.protocol_families,
   protocol_family_outcomes: [
-    { family: "tasks", observations: 12, requests: 6, responses: 6, matched: 4, matched_advertised: 4, matched_without_advertisement: 0, matched_unknown: 0, completed: 5, errors: 1, input_required: 2, unknown: 4, capability_advertised: true },
-    { family: "sampling", observations: 7, requests: 3, responses: 4, matched: 2, matched_advertised: 2, matched_without_advertisement: 0, matched_unknown: 0, completed: 2, errors: 0, input_required: 3, unknown: 2, capability_advertised: true },
-    { family: "completion", observations: 4, requests: 2, responses: 2, matched: 2, matched_advertised: 0, matched_without_advertisement: 0, matched_unknown: 2, completed: 3, errors: 1, input_required: 0, unknown: 0, capability_advertised: null },
+    { family: "tasks", observations: 8600, requests: 4300, responses: 4300, matched: 3900, matched_advertised: 3650, matched_without_advertisement: 200, matched_unknown: 50, completed: 3140, errors: 180, input_required: 550, unknown: 30, capability_advertised: true },
+    { family: "sampling", observations: 2740, requests: 1370, responses: 1370, matched: 1220, matched_advertised: 1090, matched_without_advertisement: 90, matched_unknown: 40, completed: 1040, errors: 90, input_required: 80, unknown: 10, capability_advertised: true },
+    { family: "completion", observations: 1860, requests: 930, responses: 930, matched: 850, matched_advertised: 0, matched_without_advertisement: 0, matched_unknown: 850, completed: 740, errors: 26, input_required: 74, unknown: 10, capability_advertised: null },
   ],
   protocol_family_outcome_source: "event_window",
   interaction_surfaces: {
-    resources: { events: 42, methods: ["resources/list", "resources/read"], entity_count: 12, entity_identity: "sha256_hash_count", entity_analytics: { status: "available", read_events: 31, successful_reads: 28, failed_reads: 2, input_required_reads: 1, transport_breakdown: [{ transport: "streamable_http", read_events: 31, successful_reads: 28, failed_reads: 2 }] } },
-    prompts: { events: 19, methods: ["prompts/list", "prompts/get"], entity_count: 5, entity_identity: "sha256_hash_count", entity_analytics: { status: "available", read_events: 16, successful_reads: 14, failed_reads: 1, input_required_reads: 1, transport_breakdown: [{ transport: "streamable_http", read_events: 16, successful_reads: 14, failed_reads: 1 }] } },
+    resources: { events: 14880, methods: ["resources/list", "resources/read"], entity_count: 1860, entity_identity: "sha256_hash_count", entity_analytics: { status: "available", read_events: 10320, successful_reads: 9800, failed_reads: 360, input_required_reads: 160, transport_breakdown: [{ transport: "streamable_http", read_events: 10320, successful_reads: 9800, failed_reads: 360 }] } },
+    prompts: { events: 6540, methods: ["prompts/list", "prompts/get"], entity_count: 48, entity_identity: "sha256_hash_count", entity_analytics: { status: "available", read_events: 4790, successful_reads: 4520, failed_reads: 190, input_required_reads: 80, transport_breakdown: [{ transport: "streamable_http", read_events: 4790, successful_reads: 4520, failed_reads: 190 }] } },
   },
   transports: ["streamable_http"],
   methods: ["tools/list", "tools/call"],
-  tool_calls: 1293,
-  sessions: 96,
-  errors: 61,
-  completion_rate: 0.74,
+  tool_calls: EXAMPLE_TOOL_CALLS,
+  sessions: EXAMPLE_SCENARIO.sessions,
+  errors: EXAMPLE_TOOL_ERRORS,
+  completion_rate: EXAMPLE_COMPLETED / EXAMPLE_WORKFLOW_STARTS,
   completion_source: "workflow_events",
   correlation_quality: "session_id",
   correlation_handle_source: "issued",
   funnel: {
-    connections: 96,
-    discovered_tools: 8,
-    tool_calls: 1293,
-    successful_calls: 1232,
+    connections: EXAMPLE_SCENARIO.sessions,
+    discovered_tools: EXAMPLE_ADVERTISED_TOOLS,
+    tool_calls: EXAMPLE_TOOL_CALLS,
+    successful_calls: EXAMPLE_TOOL_CALLS - EXAMPLE_TOOL_ERRORS,
   },
-  tool_adoption: { advertised: 8, observed: 5, breadth: 0.625, unused: 3 },
+  tool_adoption: { advertised: EXAMPLE_ADVERTISED_TOOLS, observed: EXAMPLE_SCENARIO.tools.length, breadth: EXAMPLE_SCENARIO.tools.length / EXAMPLE_ADVERTISED_TOOLS, unused: 2 },
   intent_sources: {
-    context_parameter: 48,
-    external_callback: 18,
-    fallback: 7,
-    missing: 11,
+    context_parameter: 50976,
+    external_callback: 16992,
+    fallback: 8496,
+    missing: 8496,
   },
   missing_capabilities: [
-    { name: "bulk_export", reports: 12 },
-    { name: "sync_vendor_payments", reports: 5 },
+    { name: "bulk_export_archive", reports: 126 },
+    { name: "schedule_recurring_reconciliation", reports: 84 },
   ],
-  timeline: Array.from({ length: 20 }, (_, i) => ({
-    date: "2026-08-" + String(i + 1).padStart(2, "0"),
-    events: 84 + i * 7 + (i % 4) * 8,
-    calls: 62 + i * 9 + (i % 3) * 6,
-    errors: i === 8 || i === 16 ? 10 : 2 + (i % 4),
+  timeline: exampleTimeline(EXAMPLE_PERIOD_DAYS, EXAMPLE_TOTAL_EVENTS, EXAMPLE_TOOL_CALLS, EXAMPLE_TOOL_ERRORS),
+  clients: distribute(EXAMPLE_TOOL_CALLS, EXAMPLE_SCENARIO.clients.map((client) => client.weight)).map((calls, index) => ({
+    name: EXAMPLE_SCENARIO.clients[index].name,
+    calls,
   })),
-  clients: [
-    { name: "Claude", calls: 520 },
-    { name: "Cursor", calls: 344 },
-    { name: "ChatGPT", calls: 210 },
-    { name: "Gemini", calls: 130 },
-    { name: "Other observed", calls: 50 },
+  tools: EXAMPLE_SCENARIO.tools.map((tool) => ({
+    ...tool,
+    error_rate: tool.errors / tool.calls,
+    latency_sample_count: tool.calls,
+    discovered: true,
+  })),
+  catalog_tools: [
+    ...EXAMPLE_SCENARIO.tools.map(({ name, description }) => ({ name, description, tool_description_hash: null, schema_hash: null })),
+    { name: "bulk_export_archive", description: "Archive a full historical export for compliance review.", tool_description_hash: null, schema_hash: null },
+    { name: "schedule_recurring_reconciliation", description: "Schedule recurring ledger reconciliation.", tool_description_hash: null, schema_hash: null },
   ],
-  tools: [
+  catalog_versions: [
     {
-      name: "run_query",
-      description: "Run a bounded finance query against the connected ledger.",
-      calls: 412,
-      errors: 28,
-      error_rate: 0.068,
-      avg_ms: 640,
-      p50_ms: 520,
-      p95_ms: 1420,
-      latency_sample_count: 412,
-      discovered: true,
+      id: "example-catalog-2026-10-15",
+      server_id: "example-finance-server",
+      environment_id: "example-production",
+      transport: "streamable_http",
+      catalog_kind: "tools",
+      item_count: 13,
+      item_name_hashes: Array.from({ length: 13 }, (_, index) => String(index + 1).padStart(64, "0")),
+      item_uri_hashes: [],
+      snapshot_hash: "1".repeat(64),
+      previous_snapshot_id: null,
+      complete: true,
+      truncated: false,
+      diff: { status: "initial" },
+      discovered_at: "2026-11-02T08:00:00.000Z",
+      previous_snapshot: null,
+      previous_snapshot_status: "not_requested",
     },
     {
-      name: "find_invoice",
-      description: "Find an invoice by customer, reference, or date.",
-      calls: 318,
-      errors: 7,
-      error_rate: 0.022,
-      avg_ms: 220,
-      p50_ms: 180,
-      p95_ms: 480,
-      latency_sample_count: 318,
-      discovered: true,
-    },
-    {
-      name: "create_report",
-      description: "Create an accounts-receivable summary report.",
-      calls: 196,
-      errors: 11,
-      error_rate: 0.056,
-      avg_ms: 420,
-      p50_ms: 360,
-      p95_ms: 920,
-      latency_sample_count: 196,
-      discovered: true,
-    },
-    {
-      name: "export_csv",
-      description: "Export the selected report rows as CSV.",
-      calls: 7,
-      errors: 0,
-      error_rate: 0,
-      avg_ms: 300,
-      p50_ms: 260,
-      p95_ms: 610,
-      latency_sample_count: 7,
-      discovered: true,
-    },
-    {
-      name: "get_customer_balance",
-      description: "Retrieve the current balance for a customer account.",
-      calls: 236,
-      errors: 9,
-      error_rate: 0.038,
-      avg_ms: 280,
-      p50_ms: 230,
-      p95_ms: 650,
-      latency_sample_count: 236,
-      discovered: true,
-    },
-    {
-      name: "list_accounts",
-      description: "List customer accounts available to the connected user.",
-      calls: 124,
-      errors: 6,
-      error_rate: 0.048,
-      avg_ms: 190,
-      p50_ms: 150,
-      p95_ms: 390,
-      latency_sample_count: 124,
-      discovered: true,
+      id: "example-catalog-2026-10-29",
+      server_id: "example-finance-server",
+      environment_id: "example-production",
+      transport: "streamable_http",
+      catalog_kind: "tools",
+      item_count: 14,
+      item_name_hashes: Array.from({ length: 14 }, (_, index) => String(index + 2).padStart(64, "0")),
+      item_uri_hashes: [],
+      snapshot_hash: "2".repeat(64),
+      previous_snapshot_id: "example-catalog-2026-10-15",
+      complete: true,
+      truncated: false,
+      diff: { status: "computed", added_name_count: 2, removed_name_count: 1 },
+      discovered_at: "2026-11-04T08:00:00.000Z",
+      previous_snapshot: {
+        id: "example-catalog-2026-10-15",
+        version: null,
+        observed_at: "2026-11-02T08:00:00.000Z",
+        transport: "streamable_http",
+        catalog_kind: "tools",
+        item_count: 13,
+        item_name_hashes: Array.from({ length: 13 }, (_, index) => String(index + 1).padStart(64, "0")),
+        item_uri_hashes: [],
+        complete: true,
+        truncated: false,
+        diff: { status: "initial" },
+      },
+      previous_snapshot_status: "available",
     },
   ],
-  catalog_tools: [],
-  unused_tools: ["bulk_export", "sync_vendor_payments"],
+  catalog_version_status: "available",
+  catalog_snapshot_summary: {
+    versions: 2,
+    changed_versions: 1,
+    diff_computed: 1,
+    truncated_versions: 0,
+    page_bounded: false,
+    limitation: "Illustrative complete catalog snapshots; item identities remain hashed.",
+    notification_correlations: [
+      { kind: "tools", notifications: 1200, matched_notifications: 1120, ambiguous_notifications: 25, unmatched_notifications: 55, snapshots: 2, match_window_ms: 60000, status: "available" },
+      { kind: "resources", notifications: 400, matched_notifications: 360, ambiguous_notifications: 10, unmatched_notifications: 30, snapshots: 2, match_window_ms: 60000, status: "available" },
+      { kind: "resource_templates", notifications: 300, matched_notifications: 260, ambiguous_notifications: 8, unmatched_notifications: 32, snapshots: 2, match_window_ms: 60000, status: "available" },
+      { kind: "prompts", notifications: 200, matched_notifications: 180, ambiguous_notifications: 5, unmatched_notifications: 15, snapshots: 2, match_window_ms: 60000, status: "available" },
+    ],
+  },
+  unused_tools: ["bulk_export_archive", "schedule_recurring_reconciliation"],
   workflows: [
     {
       session_id: "example-session-1",
       client_name: "Claude",
       calls: 8,
       tools: ["find_invoice", "create_report"],
-      started_at: "2026-08-28T10:42:00Z",
+      started_at: "2026-11-05T10:42:00Z",
       duration_ms: 3680,
       completed: true,
       completion_source: "workflow_events",
@@ -629,7 +701,7 @@ const EXAMPLE_ANALYTICS: Analytics = {
       client_name: "Cursor",
       calls: 6,
       tools: ["run_query", "export_csv"],
-      started_at: "2026-08-28T10:18:00Z",
+      started_at: "2026-11-05T10:18:00Z",
       duration_ms: 9200,
       completed: false,
       completion_source: "workflow_events",
@@ -640,7 +712,7 @@ const EXAMPLE_ANALYTICS: Analytics = {
       client_name: "ChatGPT",
       calls: 11,
       tools: ["find_invoice", "create_report"],
-      started_at: "2026-08-27T16:12:00Z",
+      started_at: "2026-11-04T16:12:00Z",
       duration_ms: 6410,
       completed: true,
       completion_source: "workflow_events",
@@ -651,7 +723,7 @@ const EXAMPLE_ANALYTICS: Analytics = {
       client_name: "Gemini",
       calls: 9,
       tools: ["get_customer_balance", "list_accounts"],
-      started_at: "2026-08-27T13:08:00Z",
+      started_at: "2026-11-04T13:08:00Z",
       duration_ms: 5120,
       completed: true,
       completion_source: "workflow_events",
@@ -662,7 +734,7 @@ const EXAMPLE_ANALYTICS: Analytics = {
       client_name: "Claude",
       calls: 14,
       tools: ["run_query", "create_report", "export_csv"],
-      started_at: "2026-08-26T09:24:00Z",
+      started_at: "2026-11-03T09:24:00Z",
       duration_ms: 11800,
       completed: true,
       completion_source: "workflow_events",
@@ -673,54 +745,129 @@ const EXAMPLE_ANALYTICS: Analytics = {
       client_name: "ChatGPT",
       calls: 5,
       tools: ["find_invoice", "get_customer_balance"],
-      started_at: "2026-08-25T15:40:00Z",
+      started_at: "2026-11-02T15:40:00Z",
       duration_ms: 2890,
       completed: false,
       completion_source: "workflow_events",
       correlation_quality: "session_id",
     },
+    {
+      session_id: "example-session-7",
+      client_name: "Claude Code",
+      calls: 18,
+      tools: ["run_query", "reconcile_transactions", "create_report"],
+      started_at: "2026-11-02T12:30:00Z",
+      duration_ms: 14300,
+      completed: true,
+      completion_source: "workflow_events",
+      correlation_quality: "session_id",
+    },
+    {
+      session_id: "example-session-8",
+      client_name: "VS Code Copilot",
+      calls: 7,
+      tools: ["find_invoice", "get_payment_status"],
+      started_at: "2026-11-01T16:05:00Z",
+      duration_ms: 4280,
+      completed: true,
+      completion_source: "workflow_events",
+      correlation_quality: "session_id",
+    },
+    {
+      session_id: "example-session-9",
+      client_name: "Windsurf",
+      calls: 12,
+      tools: ["create_report", "export_csv"],
+      started_at: "2026-10-31T11:18:00Z",
+      duration_ms: 10100,
+      completed: true,
+      completion_source: "workflow_events",
+      correlation_quality: "session_id",
+    },
+    {
+      session_id: "example-session-10",
+      client_name: "Gemini CLI",
+      calls: 9,
+      tools: ["forecast_cash_flow", "get_customer_balance"],
+      started_at: "2026-10-30T09:42:00Z",
+      duration_ms: 7560,
+      completed: true,
+      completion_source: "workflow_events",
+      correlation_quality: "session_id",
+    },
+    {
+      session_id: "example-session-11",
+      client_name: "Cline",
+      calls: 5,
+      tools: ["sync_vendor_payments", "search_vendor"],
+      started_at: "2026-10-29T14:25:00Z",
+      duration_ms: 5820,
+      completed: false,
+      completion_source: "workflow_events",
+      correlation_quality: "session_id",
+    },
+    {
+      session_id: "example-session-12",
+      client_name: "OpenHands",
+      calls: 14,
+      tools: ["list_accounts", "search_vendor", "get_customer_balance"],
+      started_at: "2026-10-28T08:55:00Z",
+      duration_ms: 9350,
+      completed: true,
+      completion_source: "workflow_events",
+      correlation_quality: "session_id",
+    },
   ],
-  outcomes: [
-    { name: "invoice_lookup", started: 18, completed: 12, failed: 6, unresolved: 0 },
-    { name: "report_creation", started: 10, completed: 8, failed: 2, unresolved: 0 },
-    { name: "account_balance", started: 14, completed: 11, failed: 3, unresolved: 0 },
-    { name: "finance_export", started: 8, completed: 6, failed: 2, unresolved: 0 },
-  ],
+  outcomes: EXAMPLE_SCENARIO.outcomes.map((outcome) => ({
+    ...outcome,
+    unresolved: outcome.started - outcome.completed - outcome.failed,
+  })),
   insights: [
     {
       level: "warn",
-      title: "run_query is slower than its observed range",
-      detail:
-        "Review returned errors and latency before deciding what to change.",
-      metric: "p95 1.4s",
+      title: "run_query has the slowest observed tail latency",
+      detail: `The 95th-percentile duration is ${EXAMPLE_SCENARIO.tools.find((tool) => tool.name === "run_query")?.p95_ms} ms across ${fmt(EXAMPLE_SCENARIO.tools.find((tool) => tool.name === "run_query")?.calls ?? 0)} observed calls. Compare slow sessions before changing query behavior.`,
+      metric: `p95 ${((EXAMPLE_SCENARIO.tools.find((tool) => tool.name === "run_query")?.p95_ms ?? 0) / 1000).toFixed(2)}s`,
+      affected_volume: EXAMPLE_SCENARIO.tools.find((tool) => tool.name === "run_query")?.calls,
+      confidence: "high",
+      suggested_action: "Inspect slow run_query sessions and compare their query shapes.",
     },
     {
       level: "warn",
       title: "create_report has an elevated error rate",
       detail:
-        "11 of 196 observed report requests returned an error. Compare the failed sessions with the report inputs before changing the tool.",
-      metric: "error rate 5.6%",
+        `${fmt(EXAMPLE_SCENARIO.tools.find((tool) => tool.name === "create_report")?.errors ?? 0)} of ${fmt(EXAMPLE_SCENARIO.tools.find((tool) => tool.name === "create_report")?.calls ?? 0)} observed report requests returned an error. Compare the failed sessions with the report inputs before changing the tool.`,
+      metric: `error rate ${percent((EXAMPLE_SCENARIO.tools.find((tool) => tool.name === "create_report")?.errors ?? 0) / (EXAMPLE_SCENARIO.tools.find((tool) => tool.name === "create_report")?.calls ?? 1))}`,
+      affected_volume: EXAMPLE_SCENARIO.tools.find((tool) => tool.name === "create_report")?.errors,
+      eligible_volume: EXAMPLE_SCENARIO.tools.find((tool) => tool.name === "create_report")?.calls,
+      confidence: "high",
+      suggested_action: "Review representative create_report failures and error classes.",
     },
     {
       level: "info",
-      title: "bulk_export is advertised but not observed",
+      title: "Two advertised capabilities are not observed",
       detail:
-        "The catalog exposes this capability, but no calls were observed in the selected period. Ask whether users know it exists or need it.",
-      metric: "12 reported gaps",
+        "The catalog advertises bulk_export_archive and schedule_recurring_reconciliation, but neither was called in this period. Check whether those capabilities are discoverable and useful to users.",
+      metric: `${EXAMPLE_ADVERTISED_TOOLS - EXAMPLE_SCENARIO.tools.length} unused of ${EXAMPLE_ADVERTISED_TOOLS} advertised`,
+      confidence: "medium",
+      suggested_action: "Ask users whether the two unused capabilities solve a current task.",
     },
     {
       level: "info",
       title: "Invoice lookup is the most common business task",
       detail:
-        "Invoice lookup appears in the largest number of explicit workflow starts. Use Evidence to inspect how those sessions complete.",
-      metric: "18 workflow starts",
+        "Invoice lookup has the largest explicit workflow-start count. Use Evidence to inspect representative sessions and their reported terminal states.",
+      metric: `${fmt(EXAMPLE_SCENARIO.outcomes.find((outcome) => outcome.name === "invoice_lookup")?.started ?? 0)} workflow starts`,
+      affected_volume: EXAMPLE_SCENARIO.outcomes.find((outcome) => outcome.name === "invoice_lookup")?.started,
+      confidence: "high",
+      suggested_action: "Open an invoice lookup session and inspect its reported outcome.",
     },
   ],
 };
 
 const EXAMPLE_QUALITY: ToolQualityResponse = {
-  range_days: 30,
-  source_event_count: 1620,
+  range_days: EXAMPLE_PERIOD_DAYS,
+  source_event_count: EXAMPLE_TOTAL_EVENTS,
   truncated: false,
   tool_paths: [],
   advertised_but_unused: [],
@@ -734,235 +881,436 @@ const EXAMPLE_QUALITY: ToolQualityResponse = {
       failed_call_count: tool.errors,
       known_outcome_call_count: tool.calls,
       inspectable_successful_result_count: tool.calls - tool.errors,
-      empty_result_count: 8,
+      empty_result_count: Math.round((tool.calls - tool.errors) * 0.035),
       known_retry_call_count: tool.calls,
-      retry_call_count: 4,
-      non_retry_call_count: tool.calls - 4,
-      observed_repeat_call_count: 12,
-      session_count: 30,
-      associated_workflow_call_count: 28,
+      retry_call_count: Math.round(tool.calls * 0.03),
+      non_retry_call_count: tool.calls - Math.round(tool.calls * 0.03),
+      observed_repeat_call_count: Math.round(tool.calls * 0.18),
+      session_count: Math.round(EXAMPLE_SCENARIO.sessions * tool.calls / EXAMPLE_TOOL_CALLS),
+      associated_workflow_call_count: Math.round(EXAMPLE_SCENARIO.workflow_associated_calls * tool.calls / EXAMPLE_TOOL_CALLS),
     },
     metrics: {
-      tool_call_share: tool.calls / 1293,
+      tool_call_share: tool.calls / EXAMPLE_TOOL_CALLS,
       error_rate: tool.error_rate,
       observable_empty_result_rate: 0.04,
-      retry_rate: 0.02,
-      observed_repeat_call_rate: 0.05,
+      retry_rate: 0.03,
+      observed_repeat_call_rate: 0.18,
     },
     catalog_snapshots: [],
-    trace_session_ids: ["example-session-1"],
+    trace_session_ids: ["example-session-1", "example-session-2", "example-session-3"],
     completion_association: {
-      explicit_workflow_count: 12,
-      terminal_workflow_count: 12,
-      explicitly_started_count: 18,
-      explicitly_completed_count: 12,
-      completion_rate: 0.667,
-      status: tool.name === "export_csv" ? "insufficient_data" : "not_flagged",
-      insufficient_data: tool.name === "export_csv" ? ["tool_volume"] : [],
+      explicit_workflow_count: Math.round(EXAMPLE_WORKFLOW_STARTS * tool.calls / EXAMPLE_TOOL_CALLS),
+      terminal_workflow_count: Math.round((EXAMPLE_COMPLETED + EXAMPLE_FAILED) * tool.calls / EXAMPLE_TOOL_CALLS),
+      explicitly_started_count: Math.round(EXAMPLE_WORKFLOW_STARTS * tool.calls / EXAMPLE_TOOL_CALLS),
+      explicitly_completed_count: Math.round(EXAMPLE_COMPLETED * tool.calls / EXAMPLE_TOOL_CALLS),
+      completion_rate: EXAMPLE_WORKFLOW_STARTS ? EXAMPLE_COMPLETED / EXAMPLE_WORKFLOW_STARTS : null,
+      status: "not_flagged",
+      insufficient_data: [],
     },
     breakdowns: { clients: [], intent_sources: [] },
-    insufficient_data: tool.name === "export_csv" ? ["tool_volume"] : [],
+    insufficient_data: [],
   })),
 };
 
 function exampleAnalytics(days: number): Analytics {
   const ratio = days / 30;
   const scale = (value: number) => Math.max(0, Math.round(value * ratio));
-  // Keep the illustrative People view internally coherent: its KPI cards and
-  // ranked groups should have a visible weekly series rather than rendering a
-  // contradictory empty chart. These are explicitly illustrative values, not
-  // workspace telemetry.
+  const toolCalls = scale(EXAMPLE_TOOL_CALLS);
+  const toolErrors = scale(EXAMPLE_TOOL_ERRORS);
+  const activeAccounts = scale(EXAMPLE_ACCOUNT_GROUPS);
+  const tools = EXAMPLE_SCENARIO.tools.map((tool, index) => {
+    const calls = distribute(toolCalls, EXAMPLE_SCENARIO.tools.map((entry) => entry.calls))[index];
+    const errors = distribute(toolErrors, EXAMPLE_SCENARIO.tools.map((entry) => entry.errors))[index];
+    return { ...tool, calls, errors, error_rate: calls ? errors / calls : 0, latency_sample_count: calls, discovered: true };
+  });
+  const clients = distribute(toolCalls, EXAMPLE_SCENARIO.clients.map((client) => client.weight)).map((calls, index) => ({
+    name: EXAMPLE_SCENARIO.clients[index].name,
+    calls,
+  }));
+  const intentSourceNames = Object.keys(EXAMPLE_ANALYTICS.intent_sources) as Array<keyof Analytics["intent_sources"]>;
+  const intentSourceCounts = distribute(toolCalls, intentSourceNames.map((source) => EXAMPLE_ANALYTICS.intent_sources[source]));
+  const intentSources = Object.fromEntries(intentSourceNames.map((source, index) => [source, intentSourceCounts[index]])) as Analytics["intent_sources"];
+  const outcomes = EXAMPLE_SCENARIO.outcomes.map((outcome) => {
+    const started = scale(outcome.started);
+    const completed = scale(outcome.completed);
+    const failed = scale(outcome.failed);
+    return { ...outcome, started, completed, failed, unresolved: started - completed - failed };
+  });
+  const outcomeTotals = outcomes.reduce((totals, outcome) => ({
+    started: totals.started + outcome.started,
+    completed: totals.completed + outcome.completed,
+    failed: totals.failed + outcome.failed,
+    unresolved: totals.unresolved + outcome.unresolved,
+  }), { started: 0, completed: 0, failed: 0, unresolved: 0 });
+  const adoptionBands = distribute(activeAccounts, [410, 570, 570, 270]);
+  const activeBands = distribute(activeAccounts, [410, 820, 590]);
+  const weekCount = Math.ceil(days / 7);
+  const [endYear, endMonth, endDate] = EXAMPLE_END_DATE.split("-").map(Number);
+  const rangeEnd = Date.UTC(endYear, endMonth - 1, endDate);
+  const rangeEndExclusive = rangeEnd + 24 * 60 * 60 * 1000;
+  const rangeStart = rangeEnd - (days - 1) * 24 * 60 * 60 * 1000;
+  const weeklyStarts = Array.from({ length: weekCount }, (_, index) => new Date(rangeStart + index * 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10));
+  const weeks = Array.from({ length: weekCount }, (_, index) => 0.8 + ((index * 7 + 3) % 11) * 0.035);
   const scaleGrowth = [
-    { period_start: "2026-08-05", active_accounts: scale(6) },
-    { period_start: "2026-08-12", active_accounts: scale(9) },
-    { period_start: "2026-08-19", active_accounts: scale(11) },
-    { period_start: "2026-08-26", active_accounts: scale(14) },
-    { period_start: "2026-09-02", active_accounts: scale(18) },
+    ...weeklyStarts.map((period_start, index) => ({
+      period_start,
+      active_accounts: Math.max(1, Math.round(activeAccounts * (0.42 + 0.58 * ((index + 1) / weekCount)))),
+    })),
   ];
+  const resourceReads = scale(8940);
+  const resourceRetries = scale(1380);
+  const resourceObservations = resourceReads + resourceRetries;
+  const promptCalls = scale(4320);
+  const promptRetries = scale(470);
+  const promptObservations = promptCalls + promptRetries;
+  const resourceOutcomes = {
+    interactions: resourceReads,
+    complete: scale(8320),
+    stalled: scale(242),
+    errored: scale(301),
+  };
+  const promptOutcomes = {
+    interactions: promptCalls,
+    complete: scale(4020),
+    stalled: scale(120),
+    errored: scale(135),
+  };
+  const resourceOutcomeUnknown = resourceReads - resourceOutcomes.complete - resourceOutcomes.stalled - resourceOutcomes.errored;
+  const promptOutcomeUnknown = promptCalls - promptOutcomes.complete - promptOutcomes.stalled - promptOutcomes.errored;
+  const journeyInteractions = scale(EXAMPLE_SCENARIO.sessions);
+  const journeyPaths = [
+    { path: ["find_invoice", "create_report"], interactions: scale(2550) },
+    { path: ["run_query", "export_csv"], interactions: scale(1980) },
+    { path: ["get_customer_balance", "list_accounts"], interactions: scale(1120) },
+    { path: ["search_vendor", "get_payment_status"], interactions: scale(840) },
+  ].map((item) => ({ ...item, share: journeyInteractions ? item.interactions / journeyInteractions : null }));
+  const trendsByTool = tools.flatMap((tool) => {
+    const callCounts = distribute(tool.calls, weeks);
+    const errorCounts = distribute(tool.errors, weeks);
+    return weeklyStarts.map((period_start, index) => ({
+      period_start,
+      tool_name: tool.name,
+      calls: callCounts[index],
+      errors: errorCounts[index],
+    }));
+  });
+  const accountEligibleEvents = scale(18200);
+  const accountLinkedEvents = scale(16420);
+  const catalogCorrelationCounts = distribute(scale(2100), [1200, 400, 300, 200]);
+  const catalogCorrelations = (EXAMPLE_ANALYTICS.catalog_snapshot_summary?.notification_correlations ?? []).map((item, index) => {
+    const notifications = catalogCorrelationCounts[index];
+    const matched = distribute(notifications, [item.matched_notifications, item.ambiguous_notifications, item.unmatched_notifications]);
+    return { ...item, notifications, matched_notifications: matched[0], ambiguous_notifications: matched[1], unmatched_notifications: matched[2] };
+  });
   const examplePeople: NonNullable<Analytics["who_is_using_it"]> = {
-    active_accounts: scale(18),
-    previous_period_active_accounts: scale(14),
-    new_accounts: scale(7),
-    returning_accounts: scale(11),
+    active_accounts: activeAccounts,
+    previous_period_active_accounts: scale(EXAMPLE_SCENARIO.previous_account_groups),
+    new_accounts: Math.max(0, activeAccounts - scale(1120)),
+    returning_accounts: scale(1120),
     classification_status: "available",
     growth: scaleGrowth,
-    client_breakdown: [
-      { name: "Claude", calls: scale(520), share: 520 / 1293, identity_source: "self_reported" },
-      { name: "Cursor", calls: scale(344), share: 344 / 1293, identity_source: "self_reported" },
-      { name: "ChatGPT", calls: scale(210), share: 210 / 1293, identity_source: "self_reported" },
-      { name: "Gemini", calls: scale(130), share: 130 / 1293, identity_source: "self_reported" },
-      { name: "Unrecognized", calls: scale(89), share: 89 / 1293, identity_source: "unrecognized" },
-    ],
+    client_breakdown: clients.map((client) => ({
+      ...client,
+      share: toolCalls ? client.calls / toolCalls : null,
+      identity_source: client.name === "Unrecognized" ? "unrecognized" as const : "self_reported" as const,
+    })),
     top_accounts: [
-      { rank: 1, activity_count: scale(184), active_days: Math.min(days, 26), identity_source: "resolver" },
-      { rank: 2, activity_count: scale(143), active_days: Math.min(days, 21), identity_source: "resolver" },
-      { rank: 3, activity_count: scale(118), active_days: Math.min(days, 18), identity_source: "resolver" },
-      { rank: 4, activity_count: scale(96), active_days: Math.min(days, 15), identity_source: "resolver" },
-      { rank: 5, activity_count: scale(74), active_days: Math.min(days, 12), identity_source: "resolver" },
+      { rank: 1, activity_count: scale(14800), active_days: Math.min(days, 30), identity_source: "resolver" },
+      { rank: 2, activity_count: scale(11800), active_days: Math.min(days, 29), identity_source: "resolver" },
+      { rank: 3, activity_count: scale(9400), active_days: Math.min(days, 28), identity_source: "resolver" },
+      { rank: 4, activity_count: scale(7200), active_days: Math.min(days, 27), identity_source: "resolver" },
+      { rank: 5, activity_count: scale(5600), active_days: Math.min(days, 26), identity_source: "resolver" },
     ],
-    identity_coverage: 132 / 148,
+    identity_coverage: accountEligibleEvents ? accountLinkedEvents / accountEligibleEvents : null,
     limitation: "Illustrative account activity is resolver-linked and privacy-safe; it is not a count of people or named customers.",
   };
   const exampleCapabilityActivity: NonNullable<Analytics["capability_activity"]> = {
-    total_calls: scale(1293),
-    previous_period_calls: scale(1104),
-    overall_error_rate: 61 / 1293,
-    avg_tools_used_per_account: 3.2,
-    advertised_tools: 8,
+    total_calls: toolCalls,
+    previous_period_calls: scale(74280),
+    overall_error_rate: toolCalls ? toolErrors / toolCalls : null,
+    avg_tools_used_per_account: 6.8,
+    advertised_tools: EXAMPLE_ADVERTISED_TOOLS,
     adoption_distribution: [
-      { bucket: "1 tool", accounts: scale(5) },
-      { bucket: "2-3 tools", accounts: scale(7) },
-      { bucket: "4-6 tools", accounts: scale(4) },
-      { bucket: "7+ tools", accounts: scale(2) },
+      { bucket: "1 tool", accounts: adoptionBands[0] },
+      { bucket: "2-3 tools", accounts: adoptionBands[1] },
+      { bucket: "4-6 tools", accounts: adoptionBands[2] },
+      { bucket: "7+ tools", accounts: adoptionBands[3] },
     ],
-    trend: [
-      { period_start: "2026-08-05", tool_name: "run_query", calls: scale(180) },
-      { period_start: "2026-08-05", tool_name: "find_invoice", calls: scale(120) },
-      { period_start: "2026-08-12", tool_name: "run_query", calls: scale(242) },
-      { period_start: "2026-08-12", tool_name: "find_invoice", calls: scale(158) },
-      { period_start: "2026-08-19", tool_name: "run_query", calls: scale(310) },
-      { period_start: "2026-08-19", tool_name: "find_invoice", calls: scale(212) },
-      { period_start: "2026-08-26", tool_name: "run_query", calls: scale(412) },
-      { period_start: "2026-08-26", tool_name: "find_invoice", calls: scale(318) },
-    ],
-    reliability: EXAMPLE_ANALYTICS.tools.map((tool) => ({
+    trend: trendsByTool.map(({ period_start, tool_name, calls }) => ({ period_start, tool_name, calls })),
+    reliability: tools.map((tool) => ({
       tool_name: tool.name,
-      calls: scale(tool.calls),
+      calls: tool.calls,
       error_rate: tool.error_rate,
-      input_required_rate: tool.name === "run_query" ? 0.08 : 0.03,
-      p95_ms: tool.p95_ms || null,
+      input_required_rate: tool.name === "run_query" ? 0.08 : tool.name === "create_report" ? 0.06 : 0.025,
+      p95_ms: tool.p95_ms,
     })),
-    tool_details: EXAMPLE_ANALYTICS.tools.map((tool) => ({
+    tool_details: tools.map((tool) => ({
       tool_name: tool.name,
-      calls: scale(tool.calls),
+      calls: tool.calls,
       error_rate: tool.error_rate,
-      p95_ms: tool.p95_ms || null,
-      top_accounts: [
-        { rank: 1, calls: scale(Math.max(1, Math.round(tool.calls * 0.31))) },
-        { rank: 2, calls: scale(Math.max(1, Math.round(tool.calls * 0.22))) },
-        { rank: 3, calls: scale(Math.max(1, Math.round(tool.calls * 0.14))) },
-      ],
-      trend: [
-        { period_start: "2026-08-19", calls: scale(Math.round(tool.calls * 0.32)), errors: scale(Math.round(tool.errors * 0.32)) },
-        { period_start: "2026-08-26", calls: scale(Math.round(tool.calls * 0.68)), errors: scale(Math.round(tool.errors * 0.68)) },
-      ],
+      p95_ms: tool.p95_ms,
+      top_accounts: distribute(tool.calls, [0.31, 0.22, 0.14, 0.33]).slice(0, 3).map((calls, index) => ({ rank: index + 1, calls })),
+      trend: trendsByTool.filter((trend) => trend.tool_name === tool.name).map(({ period_start, calls, errors }) => ({ period_start, calls, errors })),
     })),
     limitation: "Illustrative tool activity is a bounded example, not workspace telemetry; account rankings are intentionally anonymous.",
   };
   const exampleResourcePromptActivity: NonNullable<Analytics["resource_prompt_activity"]> = {
-    resource_reads: scale(31),
-    prompt_calls: scale(16),
-    resource_observations: scale(42),
-    prompt_observations: scale(19),
-    previous_period_resource_reads: scale(24),
-    previous_period_prompt_calls: scale(12),
-    resource_completion_rate: 28 / 31,
-    resource_stall_rate: 1 / 31,
-    resource_error_rate: 2 / 31,
-    prompt_completion_rate: 14 / 16,
-    prompt_stall_rate: 1 / 16,
-    prompt_error_rate: 1 / 16,
+    resource_reads: resourceReads,
+    prompt_calls: promptCalls,
+    resource_observations: resourceObservations,
+    prompt_observations: promptObservations,
+    previous_period_resource_reads: scale(8140),
+    previous_period_prompt_calls: scale(3980),
+    resource_completion_rate: resourceReads ? resourceOutcomes.complete / resourceReads : null,
+    resource_stall_rate: resourceReads ? resourceOutcomes.stalled / resourceReads : null,
+    resource_error_rate: resourceReads ? resourceOutcomes.errored / resourceReads : null,
+    prompt_completion_rate: promptCalls ? promptOutcomes.complete / promptCalls : null,
+    prompt_stall_rate: promptCalls ? promptOutcomes.stalled / promptCalls : null,
+    prompt_error_rate: promptCalls ? promptOutcomes.errored / promptCalls : null,
     outcomes: [
-      { kind: "resource", interactions: scale(31), complete: scale(28), stalled: scale(1), errored: scale(2), unknown: 0, linked_retry_count: scale(3) },
-      { kind: "prompt", interactions: scale(16), complete: scale(14), stalled: scale(1), errored: scale(1), unknown: 0, linked_retry_count: scale(2) },
+      { kind: "resource", ...resourceOutcomes, unknown: resourceOutcomeUnknown, linked_retry_count: resourceRetries },
+      { kind: "prompt", ...promptOutcomes, unknown: promptOutcomeUnknown, linked_retry_count: promptRetries },
     ],
     resource_breakdown: [
-      { name: "resources/read", calls: scale(31), share: 1, completion_rate: 28 / 31, stall_rate: 1 / 31, error_rate: 2 / 31, unknown_rate: 0 },
+      { name: "resources/read", calls: resourceReads, share: 1, completion_rate: resourceReads ? resourceOutcomes.complete / resourceReads : null, stall_rate: resourceReads ? resourceOutcomes.stalled / resourceReads : null, error_rate: resourceReads ? resourceOutcomes.errored / resourceReads : null, unknown_rate: resourceReads ? resourceOutcomeUnknown / resourceReads : null },
     ],
     prompt_breakdown: [
-      { name: "prompts/get", calls: scale(16), share: 1, completion_rate: 14 / 16, stall_rate: 1 / 16, error_rate: 1 / 16, unknown_rate: 0 },
+      { name: "prompts/get", calls: promptCalls, share: 1, completion_rate: promptCalls ? promptOutcomes.complete / promptCalls : null, stall_rate: promptCalls ? promptOutcomes.stalled / promptCalls : null, error_rate: promptCalls ? promptOutcomes.errored / promptCalls : null, unknown_rate: promptCalls ? promptOutcomeUnknown / promptCalls : null },
     ],
-    trend: [
-      { period_start: "2026-08-19", kind: "resource", name: "resources/read", calls: scale(13) },
-      { period_start: "2026-08-19", kind: "prompt", name: "prompts/get", calls: scale(7) },
-      { period_start: "2026-08-26", kind: "resource", name: "resources/read", calls: scale(18) },
-      { period_start: "2026-08-26", kind: "prompt", name: "prompts/get", calls: scale(9) },
-    ],
+    trend: weeklyStarts.flatMap((period_start, index) => [
+      { period_start, kind: "resource" as const, name: "resources/read", calls: distribute(resourceReads, weeks)[index] },
+      { period_start, kind: "prompt" as const, name: "prompts/get", calls: distribute(promptCalls, weeks)[index] },
+    ]),
     limitation: "Illustrative resource and prompt observations expose method-level evidence only; content and arguments are not shown.",
   };
   return {
     ...EXAMPLE_ANALYTICS,
     range_days: days,
-    total_events: scale(EXAMPLE_ANALYTICS.total_events),
-    tool_calls: scale(EXAMPLE_ANALYTICS.tool_calls),
+    total_events: toolCalls + scale(EXAMPLE_PROTOCOL_EVENTS) + scale(EXAMPLE_SCENARIO.catalog_events),
+    protocol_events: scale(EXAMPLE_PROTOCOL_EVENTS),
+    catalog_events: scale(EXAMPLE_SCENARIO.catalog_events),
+    tool_calls: toolCalls,
     sessions: scale(EXAMPLE_ANALYTICS.sessions),
-    errors: scale(EXAMPLE_ANALYTICS.errors),
-    clients: EXAMPLE_ANALYTICS.clients.map((item) => ({
-      ...item,
-      calls: scale(item.calls),
-    })),
-    tools: EXAMPLE_ANALYTICS.tools.map((item) => ({
-      ...item,
-      calls: scale(item.calls),
-      errors: scale(item.errors),
-    })),
-    timeline: EXAMPLE_ANALYTICS.timeline.slice(
-      -Math.min(days, EXAMPLE_ANALYTICS.timeline.length),
-    ),
-    outcomes: EXAMPLE_ANALYTICS.outcomes.map((item) => ({
-      ...item,
-      started: scale(item.started),
-      completed: scale(item.completed),
-      failed: scale(item.failed),
-    })),
+    errors: toolErrors,
+    clients,
+    tools,
+    timeline: exampleTimeline(days, toolCalls + scale(EXAMPLE_PROTOCOL_EVENTS) + scale(EXAMPLE_SCENARIO.catalog_events), toolCalls, toolErrors),
+    outcomes,
+    workflows: EXAMPLE_ANALYTICS.workflows.filter((workflow) => {
+      const startedAt = Date.parse(workflow.started_at);
+      return startedAt >= rangeStart && startedAt < rangeEndExclusive;
+    }),
+    completion_rate: outcomeTotals.started ? outcomeTotals.completed / outcomeTotals.started : null,
+    funnel: { connections: scale(EXAMPLE_SCENARIO.sessions), discovered_tools: EXAMPLE_ADVERTISED_TOOLS, tool_calls: toolCalls, successful_calls: toolCalls - toolErrors },
+    tool_adoption: { advertised: EXAMPLE_ADVERTISED_TOOLS, observed: tools.filter((tool) => tool.calls > 0).length, breadth: tools.length / EXAMPLE_ADVERTISED_TOOLS, unused: EXAMPLE_ADVERTISED_TOOLS - tools.length },
+    insights: tools.length ? [
+      { level: "warn", title: "run_query has the slowest observed tail latency", detail: `The 95th-percentile duration is 1,420 ms across ${fmt(tools.find((tool) => tool.name === "run_query")?.calls ?? 0)} calls. Compare slow sessions before changing query behavior.`, metric: "p95 1.42s", affected_volume: tools.find((tool) => tool.name === "run_query")?.calls, confidence: "high", suggested_action: "Inspect slow run_query sessions and compare their query shapes." },
+      { level: "warn", title: "create_report has an elevated error rate", detail: `${fmt(tools.find((tool) => tool.name === "create_report")?.errors ?? 0)} of ${fmt(tools.find((tool) => tool.name === "create_report")?.calls ?? 0)} observed report requests returned an error.`, metric: `error rate ${percent(tools.find((tool) => tool.name === "create_report")?.error_rate ?? null)}`, affected_volume: tools.find((tool) => tool.name === "create_report")?.errors, eligible_volume: tools.find((tool) => tool.name === "create_report")?.calls, confidence: "high", suggested_action: "Review representative create_report failures and error classes." },
+      { level: "info", title: "Two advertised capabilities are not observed", detail: "The catalog advertises bulk_export_archive and schedule_recurring_reconciliation, but neither was called in this period.", metric: `${EXAMPLE_ADVERTISED_TOOLS - tools.length} unused of ${EXAMPLE_ADVERTISED_TOOLS} advertised`, confidence: "medium", suggested_action: "Ask users whether the two unused capabilities solve a current task." },
+      { level: "info", title: "Invoice lookup is the most common business task", detail: "Invoice lookup has the largest explicit workflow-start count. Use Evidence to inspect representative sessions and their reported terminal states.", metric: `${fmt(outcomes[0]?.started ?? 0)} workflow starts`, affected_volume: outcomes[0]?.started, confidence: "high", suggested_action: "Open an invoice lookup session and inspect its reported outcome." },
+    ] : [],
+    account_summary: {
+      ...EXAMPLE_ANALYTICS.account_summary!,
+      observed_account_keys: scale(2480),
+      active_account_keys: activeAccounts,
+      active_account_keys_7d: Math.min(activeAccounts, 1160),
+      returning_account_keys: scale(1120),
+      account_activity_bands: { one_event: activeBands[0], repeat: activeBands[1], high_activity: activeBands[2] },
+      eligible_events: accountEligibleEvents,
+      resolver_linked_events: accountLinkedEvents,
+      unresolved_events: accountEligibleEvents - accountLinkedEvents,
+      resolver_coverage: accountEligibleEvents ? accountLinkedEvents / accountEligibleEvents : null,
+    },
+    deployment_summary: { ...EXAMPLE_ANALYTICS.deployment_summary!, observed_deployments: scale(18), linked_events: scale(8640) },
+    protocol_signals: {
+      notification: scale(6200), progress: scale(9300), cancelled: scale(840), catalog_changed: scale(2100), resource_changed: scale(600), subscription_started: scale(740), subscription_stopped: scale(720),
+      observed_events: scale(6200) + scale(9300) + scale(840) + scale(2100) + scale(600) + scale(740) + scale(720),
+    },
+    protocol_family_activity: EXAMPLE_ANALYTICS.protocol_family_activity?.map((item) => ({ ...item, observations: scale(item.observations) })),
+    protocol_family_outcomes: EXAMPLE_ANALYTICS.protocol_family_outcomes?.map((item) => {
+      const observations = scale(item.observations);
+      const requests = Math.min(observations, scale(item.requests));
+      const responses = observations - requests;
+      const matched = Math.min(requests, responses, scale(item.matched));
+      const negotiated = distribute(matched, [item.matched_advertised, item.matched_without_advertisement, item.matched_unknown]);
+      const resultStates = distribute(matched, [item.completed, item.errors, item.input_required, item.unknown]);
+      return {
+        ...item,
+        observations,
+        requests,
+        responses,
+        matched,
+        matched_advertised: negotiated[0],
+        matched_without_advertisement: negotiated[1],
+        matched_unknown: negotiated[2],
+        completed: resultStates[0],
+        errors: resultStates[1],
+        input_required: resultStates[2],
+        unknown: resultStates[3],
+      };
+    }),
+    catalog_snapshot_summary: EXAMPLE_ANALYTICS.catalog_snapshot_summary
+      ? { ...EXAMPLE_ANALYTICS.catalog_snapshot_summary, notification_correlations: catalogCorrelations }
+      : undefined,
+    interaction_surfaces: {
+      resources: { ...EXAMPLE_ANALYTICS.interaction_surfaces!.resources, events: resourceObservations + scale(4560), entity_count: scale(1860), entity_analytics: { ...EXAMPLE_ANALYTICS.interaction_surfaces!.resources.entity_analytics, read_events: resourceObservations, successful_reads: distribute(resourceObservations, [9800, 360, 160])[0], failed_reads: distribute(resourceObservations, [9800, 360, 160])[1], input_required_reads: distribute(resourceObservations, [9800, 360, 160])[2], transport_breakdown: [{ transport: "streamable_http", read_events: resourceObservations, successful_reads: distribute(resourceObservations, [9800, 360, 160])[0], failed_reads: distribute(resourceObservations, [9800, 360, 160])[1] }] } },
+      prompts: { ...EXAMPLE_ANALYTICS.interaction_surfaces!.prompts, events: promptObservations + scale(1750), entity_count: scale(48), entity_analytics: { ...EXAMPLE_ANALYTICS.interaction_surfaces!.prompts.entity_analytics, read_events: promptObservations, successful_reads: distribute(promptObservations, [4520, 190, 80])[0], failed_reads: distribute(promptObservations, [4520, 190, 80])[1], input_required_reads: distribute(promptObservations, [4520, 190, 80])[2], transport_breakdown: [{ transport: "streamable_http", read_events: promptObservations, successful_reads: distribute(promptObservations, [4520, 190, 80])[0], failed_reads: distribute(promptObservations, [4520, 190, 80])[1] }] } },
+    },
+    intent_sources: intentSources,
     who_is_using_it: examplePeople,
     capability_activity: exampleCapabilityActivity,
     resource_prompt_activity: exampleResourcePromptActivity,
     journey_activity: {
-      interaction_count: scale(96),
+      interaction_count: journeyInteractions,
       typical_journey_length: 4,
-      stalled_interactions: scale(14),
-      resumed_after_stall: scale(8),
-      common_paths: [
-        { path: ["find_invoice", "create_report"], interactions: scale(38), share: 0.396 },
-        { path: ["run_query", "export_csv"], interactions: scale(24), share: 0.25 },
-        { path: ["get_customer_balance", "list_accounts"], interactions: scale(18), share: 0.188 },
-      ],
+      stalled_interactions: scale(800),
+      resumed_after_stall: scale(520),
+      common_paths: journeyPaths,
       drop_off: [
-        { path: ["run_query", "export_csv"], interactions: scale(8), terminal_evidence: "input_required" },
-        { path: ["find_invoice", "create_report"], interactions: scale(5), terminal_evidence: "explicit_error" },
+        { path: ["run_query", "export_csv"], interactions: scale(460), terminal_evidence: "input_required" },
+        { path: ["find_invoice", "create_report"], interactions: scale(295), terminal_evidence: "explicit_error" },
       ],
       funnel: [
-        { step: "find_invoice", reached: scale(38), share: 0.396 },
-        { step: "create_report", reached: scale(32), share: 0.333 },
+        { step: "find_invoice", reached: scale(5800), share: journeyInteractions ? scale(5800) / journeyInteractions : null },
+        { step: "create_report", reached: scale(4200), share: journeyInteractions ? scale(4200) / journeyInteractions : null },
+        { step: "export_csv", reached: scale(2300), share: journeyInteractions ? scale(2300) / journeyInteractions : null },
       ],
       stall_retry: [
-        { step: "find_invoice", interactions: scale(8), status: "resumed" },
-        { step: "run_query", interactions: scale(6), status: "not_observed" },
+        { step: "find_invoice", interactions: scale(520), status: "resumed" },
+        { step: "run_query", interactions: scale(280), status: "not_observed" },
       ],
       limitation: "Illustrative journeys are bounded server-observed interaction paths, not claims about a customer’s complete business task.",
     },
     outcome_activity: {
-      completed: scale(37),
-      failed: scale(13),
-      pending: scale(8),
-      unknown: scale(6),
-      not_observable: scale(32),
-      completion_rate: 37 / 50,
-      error_rate: 13 / 50,
-      task_states: { working: scale(8), input_required: scale(6), completed: scale(37), failed: scale(13), cancelled: scale(2), expired: scale(1), unknown: scale(4) },
-      trend: [
-        { period_start: "2026-08-19", completed: scale(16), failed: scale(5), unknown: scale(3), pending: scale(4) },
-        { period_start: "2026-08-26", completed: scale(21), failed: scale(8), unknown: scale(3), pending: scale(4) },
-      ],
+      completed: outcomeTotals.completed,
+      failed: outcomeTotals.failed,
+      pending: scale(2400),
+      unknown: scale(605),
+      not_observable: 0,
+      completion_rate: outcomeTotals.completed + outcomeTotals.failed ? outcomeTotals.completed / (outcomeTotals.completed + outcomeTotals.failed) : null,
+      error_rate: outcomeTotals.completed + outcomeTotals.failed ? outcomeTotals.failed / (outcomeTotals.completed + outcomeTotals.failed) : null,
+      task_states: { working: scale(1600), input_required: scale(800), completed: outcomeTotals.completed, failed: outcomeTotals.failed, cancelled: 0, expired: 0, unknown: scale(605) },
+      trend: weeklyStarts.map((period_start, index) => ({
+        period_start,
+        completed: distribute(outcomeTotals.completed, weeks)[index],
+        failed: distribute(outcomeTotals.failed, weeks)[index],
+        unknown: distribute(scale(605), weeks)[index],
+        pending: distribute(scale(2400), weeks)[index],
+      })),
       limitation: "Only explicit outcome evidence counts as completion; unknown and not-observable states remain visible.",
     },
     issue_activity: {
-      actionable_signals: 3,
-      high_confidence_signals: 1,
-      affected_volume: scale(42),
-      suggested_actions: 3,
+      actionable_signals: 4,
+      high_confidence_signals: 3,
+      affected_volume: scale(15780 + 324),
+      suggested_actions: 4,
       limitation: "Illustrative signals are examples of investigation prompts, not confirmed failures in your workspace.",
     },
   };
 }
 function exampleQuality(days: number): ToolQualityResponse {
+  const analytics = exampleAnalytics(days);
+  const scale = (value: number) => Math.max(0, Math.round(value * days / EXAMPLE_PERIOD_DAYS));
+  const started = analytics.outcomes.reduce((total, item) => total + item.started, 0);
+  const completed = analytics.outcomes.reduce((total, item) => total + item.completed, 0);
+  const failed = analytics.outcomes.reduce((total, item) => total + item.failed, 0);
+  const workflowCounts = distribute(started, analytics.tools.map((tool) => tool.calls));
+  const completedCounts = distribute(completed, analytics.tools.map((tool) => tool.calls));
+  const failedCounts = distribute(failed, analytics.tools.map((tool) => tool.calls));
+  const sessionCounts = distribute(analytics.sessions, analytics.tools.map((tool) => tool.calls));
+  const workflowCallCounts = distribute(scale(EXAMPLE_SCENARIO.workflow_associated_calls), analytics.tools.map((tool) => tool.calls));
+  const clientWeights = analytics.clients.map((client) => client.calls);
+  const intentSources = Object.entries(analytics.intent_sources) as Array<[keyof Analytics["intent_sources"], number]>;
+
   return {
     ...EXAMPLE_QUALITY,
     range_days: days,
-    source_event_count: Math.round(
-      (EXAMPLE_QUALITY.source_event_count * days) / 30,
-    ),
+    source_event_count: analytics.total_events,
+    advertised_but_unused: analytics.unused_tools.map((name) => ({ name, description_hash: null, schema_hash: null, observed_at: `${EXAMPLE_END_DATE}T23:59:00.000Z` })),
+    tool_paths: (analytics.journey_activity?.common_paths ?? []).map((path) => {
+      const terminalWorkflowCount = Math.round(path.interactions * (started ? (completed + failed) / started : 0));
+      const completedWorkflowCount = Math.round(path.interactions * (started ? completed / started : 0));
+      const completion_rate = path.interactions ? completedWorkflowCount / path.interactions : null;
+      return {
+        path: path.path,
+        associated_call_count: path.interactions * path.path.length,
+        started_workflow_count: path.interactions,
+        terminal_workflow_count: terminalWorkflowCount,
+        completed_workflow_count: completedWorkflowCount,
+        completion_rate,
+        status: completion_rate !== null && completion_rate < 0.75 ? "associated_with_low_explicit_completion" as const : "not_flagged" as const,
+        insufficient_data: [],
+      };
+    }),
+    tools: analytics.tools.map((tool, index) => {
+      const successful = tool.calls - tool.errors;
+      const emptyResults = Math.round(successful * 0.035);
+      const retries = Math.round(tool.calls * 0.03);
+      const repeats = Math.round(tool.calls * 0.18);
+      const clientCalls = distribute(tool.calls, clientWeights);
+      const clientErrors = distribute(tool.errors, clientCalls);
+      const clientSessions = distribute(sessionCounts[index], clientCalls);
+      const sourceCalls = distribute(tool.calls, intentSources.map(([, count]) => count));
+      const sourceErrors = distribute(tool.errors, sourceCalls);
+      const sourceSessions = distribute(sessionCounts[index], sourceCalls);
+      const explicitWorkflows = workflowCounts[index];
+      const terminalWorkflows = completedCounts[index] + failedCounts[index];
+      const completedWorkflows = completedCounts[index];
+      return {
+        name: tool.name,
+        observed: {
+          call_count: tool.calls,
+          successful_call_count: successful,
+          failed_call_count: tool.errors,
+          known_outcome_call_count: tool.calls,
+          inspectable_successful_result_count: successful,
+          empty_result_count: emptyResults,
+          known_retry_call_count: tool.calls,
+          retry_call_count: retries,
+          non_retry_call_count: tool.calls - retries,
+          observed_repeat_call_count: repeats,
+          session_count: sessionCounts[index],
+          associated_workflow_call_count: workflowCallCounts[index],
+        },
+        metrics: {
+          tool_call_share: analytics.tool_calls ? tool.calls / analytics.tool_calls : null,
+          error_rate: tool.calls ? tool.errors / tool.calls : null,
+          observable_empty_result_rate: successful ? emptyResults / successful : null,
+          retry_rate: tool.calls ? retries / tool.calls : null,
+          observed_repeat_call_rate: tool.calls ? repeats / tool.calls : null,
+        },
+        catalog_snapshots: [],
+        trace_session_ids: analytics.workflows.slice(0, 3).map((workflow) => workflow.session_id),
+        completion_association: {
+          explicit_workflow_count: explicitWorkflows,
+          terminal_workflow_count: terminalWorkflows,
+          explicitly_started_count: explicitWorkflows,
+          explicitly_completed_count: completedWorkflows,
+          completion_rate: explicitWorkflows ? completedWorkflows / explicitWorkflows : null,
+          status: "not_flagged",
+          insufficient_data: [],
+        },
+        breakdowns: {
+          clients: analytics.clients.map((client, clientIndex) => ({
+            value: client.name,
+            call_count: clientCalls[clientIndex],
+            session_count: clientSessions[clientIndex],
+            tool_call_share: tool.calls ? clientCalls[clientIndex] / tool.calls : null,
+            error_rate: clientCalls[clientIndex] ? clientErrors[clientIndex] / clientCalls[clientIndex] : null,
+            insufficient_data: [],
+          })),
+          intent_sources: intentSources.map(([source], sourceIndex) => ({
+            value: source,
+            call_count: sourceCalls[sourceIndex],
+            session_count: sourceSessions[sourceIndex],
+            tool_call_share: tool.calls ? sourceCalls[sourceIndex] / tool.calls : null,
+            error_rate: sourceCalls[sourceIndex] ? sourceErrors[sourceIndex] / sourceCalls[sourceIndex] : null,
+            insufficient_data: [],
+          })),
+        },
+        insufficient_data: [],
+      };
+    }),
   };
 }
 
