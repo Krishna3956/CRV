@@ -897,6 +897,12 @@ test("Needs attention stays chart-height and scrolls its signals internally", ()
   assert.match(source, /overflow-y-auto pr-2/);
 });
 
+test("assistant breakdown stays chart-height and scrolls its entries internally", () => {
+  assert.match(source, /title="Which assistants are showing up"[\s\S]*min-h-\[320px\] max-h-\[320px\] flex-col/);
+  assert.match(source, /aria-label="Assistants showing up"/);
+  assert.match(source, /min-h-0 flex-1 space-y-3 overflow-y-auto pr-2/);
+});
+
 test("preferred Evidence route and legacy trace URLs remain supported", () => {
   assert.match(tracesRoute, /initialView="traces"/);
   assert.match(source, /window\.location\.pathname === "\/dashboard\/traces"/);
