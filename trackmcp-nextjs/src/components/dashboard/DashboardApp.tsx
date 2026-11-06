@@ -4781,21 +4781,23 @@ function ClientsView({
               <p className="mt-4 text-xs leading-relaxed text-faint">This is account-group activity, not a count of people. Groups are only counted when the server supplied a verified identity signal.</p>
             </Panel>
             <Panel title="Which assistants are showing up" subtitle="Optional application metadata reported by the connected client">
-              <div className="space-y-3">
-                {people.client_breakdown.map((client, clientIndex) => (
-                  <div key={`${client.identity_source}-${client.name || "unknown"}-${clientIndex}`} className="text-sm">
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="truncate text-ink">{client.identity_source === "unrecognized" || !client.name.trim() ? "Unrecognized assistant" : client.name}</span>
-                      <span className="shrink-0 text-muted">{client.share === null ? "N/A" : percent(client.share)} · {fmt(client.calls)} calls</span>
+              <div className="flex min-h-[320px] max-h-[320px] flex-col">
+                <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-2" aria-label="Assistants showing up">
+                  {people.client_breakdown.map((client, clientIndex) => (
+                    <div key={`${client.identity_source}-${client.name || "unknown"}-${clientIndex}`} className="text-sm">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="truncate text-ink">{client.identity_source === "unrecognized" || !client.name.trim() ? "Unrecognized assistant" : client.name}</span>
+                        <span className="shrink-0 text-muted">{client.share === null ? "N/A" : percent(client.share)} · {fmt(client.calls)} calls</span>
+                      </div>
+                      <div className={`mt-1.5 h-2 overflow-hidden rounded-full ${client.share == null ? "bg-line" : "bg-paper"}`} aria-label={client.share == null ? "Assistant share unavailable" : `Assistant share ${percent(client.share)}`}>
+                        {client.share != null && <div className="h-full rounded-full bg-brand" style={{ width: `${Math.max(0, Math.min(100, client.share * 100))}%` }} />}
+                      </div>
                     </div>
-                    <div className={`mt-1.5 h-2 overflow-hidden rounded-full ${client.share == null ? "bg-line" : "bg-paper"}`} aria-label={client.share == null ? "Assistant share unavailable" : `Assistant share ${percent(client.share)}`}>
-                      {client.share != null && <div className="h-full rounded-full bg-brand" style={{ width: `${Math.max(0, Math.min(100, client.share * 100))}%` }} />}
-                    </div>
-                  </div>
-                ))}
-                {!people.client_breakdown.length && <p className="py-4 text-sm text-muted">No client metadata was observed.</p>}
+                  ))}
+                  {!people.client_breakdown.length && <p className="py-4 text-sm text-muted">No client metadata was observed.</p>}
+                </div>
+                <p className="mt-4 border border-brand/20 bg-brand-soft/30 px-3 py-2.5 text-xs leading-relaxed text-body">Assistant names come from the connected client and may be missing or unrecognized. Unknown activity stays visible instead of being silently reassigned.</p>
               </div>
-              <p className="mt-4 border border-brand/20 bg-brand-soft/30 px-3 py-2.5 text-xs leading-relaxed text-body">Assistant names come from the connected client and may be missing or unrecognized. Unknown activity stays visible instead of being silently reassigned.</p>
             </Panel>
           </div>
           <Panel title="Most active account groups" subtitle="Ranked privacy-safe activity; names are intentionally not exposed">
