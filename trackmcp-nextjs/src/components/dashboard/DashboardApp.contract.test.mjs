@@ -115,9 +115,10 @@ test("Founder OS vertical slices share one data-trust contract", () => {
 
 test("illustrative People data keeps its growth chart consistent with its KPIs", () => {
   assert.match(source, /const scaleGrowth = \[/);
-  assert.match(source, /period_start: "2026-08-05", active_accounts: scale\(6\)/);
-  assert.match(source, /period_start: "2026-09-02", active_accounts: scale\(18\)/);
-  assert.match(source, /active_accounts: scale\(18\),\n    previous_period_active_accounts: scale\(14\)/);
+  assert.match(source, /weeklyStarts\.map\(\(period_start, index\) =>/);
+  assert.match(source, /active_accounts: Math\.max\(1, Math\.round\(activeAccounts \* \(0\.42 \+ 0\.58 \* \(\(index \+ 1\) \/ weekCount\)\)\)\)/);
+  assert.match(source, /previous_period_active_accounts: scale\(EXAMPLE_SCENARIO\.previous_account_groups\)/);
+  assert.match(source, /active_accounts: activeAccounts/);
 });
 
 test("desktop-only pilot boundary is visible on narrow dashboard viewports", () => {
@@ -327,10 +328,13 @@ test("example mode supplies every Founder OS vertical-slice read model", () => {
   ]) {
     assert.match(source, new RegExp(readModel.replace(/[.*+?^${}()|[\\]\\]/g, "\\\\$&")));
   }
-  assert.match(source, /Unrecognized.*identity_source: "unrecognized"/s);
-  assert.match(source, /resource_reads: scale\(/);
-  assert.match(source, /interaction_count: scale\(/);
-  assert.match(source, /completion_rate: 37 \/ 50/);
+  assert.match(source, /name: "Unrecognized"/);
+  assert.match(source, /identity_source: client\.name === "Unrecognized" \? "unrecognized"/);
+  assert.match(source, /const resourceReads = scale\(8940\)/);
+  assert.match(source, /resource_reads: resourceReads/);
+  assert.match(source, /interaction_count: journeyInteractions/);
+  assert.match(source, /completion_rate: outcomeTotals\.started \? outcomeTotals\.completed \/ outcomeTotals\.started/);
+  assert.match(source, /unresolved: started - completed - failed/);
   assert.match(source, /tool\.description\?\.trim\(\) \|\| humanizeCapability\(tool\.name\)/);
   assert.match(source, /Run a bounded finance query/);
   assert.match(source, /Account activity is unavailable/);
@@ -482,7 +486,9 @@ test("Setup keeps a long key history out of the primary scan", () => {
 });
 
 test("mobile dashboard header wraps without clipping workspace or data controls", () => {
-  assert.match(source, /pt-\[96px\] lg:pl-\[248px\] lg:pt-\[52px\]/);
+  assert.match(source, /pt-\[96px\]/);
+  assert.match(source, /sidebarCollapsed \? "lg:pl-\[68px\]" : "lg:pl-\[248px\]"/);
+  assert.match(source, /lg:pt-\[52px\]/);
   assert.match(source, /min-h-\[52px\] flex-wrap/);
   assert.match(source, /w-\[35vw\] max-w-\[180px\] min-w-0/);
   assert.match(source, /overflow-x-auto.*role=\"navigation\" aria-label=\"Dashboard navigation\"/s);
