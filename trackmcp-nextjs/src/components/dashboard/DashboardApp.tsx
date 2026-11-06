@@ -9,7 +9,6 @@ import {
   Blocks,
   CalendarDays,
   Check,
-  ChevronLeft,
   ChevronRight,
   Clipboard,
   ExternalLink,
@@ -21,6 +20,8 @@ import {
   LayoutGrid,
   ListChecks,
   LogOut,
+  PanelLeftClose,
+  PanelLeftOpen,
   RefreshCw,
   RotateCcw,
   Route,
@@ -1671,13 +1672,6 @@ export function DashboardApp({
           groupLabel="Configure"
           collapsed={sidebarCollapsed}
         />
-        {sampleOnly && !preview && (
-          <div className={"mt-auto border-t border-line " + (sidebarCollapsed ? "p-2" : "p-3")}>
-            <DemoIntegrationCta label="Integrate your MCP" compact={sidebarCollapsed}>
-              Integrate your MCP
-            </DemoIntegrationCta>
-          </div>
-        )}
         {!sampleOnly && <div className={"mt-auto border-t border-line " + (sidebarCollapsed ? "p-2" : "p-3")}>
           <button
             type="button"
@@ -1715,7 +1709,7 @@ export function DashboardApp({
               title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
               className="hidden h-8 w-8 cursor-pointer place-items-center rounded-md text-muted hover:bg-paper hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand lg:grid"
             >
-              {sidebarCollapsed ? <ChevronRight size={18} aria-hidden="true" /> : <ChevronLeft size={18} aria-hidden="true" />}
+              {sidebarCollapsed ? <PanelLeftOpen size={18} aria-hidden="true" /> : <PanelLeftClose size={18} aria-hidden="true" />}
             </button>}
             {workspaces.length > 1 && (
               <label className="flex min-w-0 items-center gap-2 text-[11px] text-muted">
@@ -1732,6 +1726,9 @@ export function DashboardApp({
             )}
           </div>
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+            {sampleOnly && !preview && <DemoIntegrationCta label="Integrate your MCP">
+              Integrate your MCP
+            </DemoIntegrationCta>}
             {!sampleOnly && <DataModeToggle dataMode={dataMode} onChange={setDataMode} />}
             {!preview && !sampleOnly && <LanguageSwitcher />}
           </div>

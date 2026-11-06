@@ -494,6 +494,15 @@ test("mobile dashboard header wraps without clipping workspace or data controls"
   assert.match(source, /overflow-x-auto.*role=\"navigation\" aria-label=\"Dashboard navigation\"/s);
 });
 
+test("sample dashboard keeps MCP integration in the header and uses panel controls for the sidebar", () => {
+  assert.match(source, /sampleOnly && !preview && <DemoIntegrationCta label="Integrate your MCP">/);
+  assert.match(source, /Integrate your MCP[\s\S]*<ArrowRight size=\{14\}/);
+  assert.doesNotMatch(source, /sampleOnly && !preview && \([\s\S]*DemoIntegrationCta label="Integrate your MCP"[\s\S]*mt-auto border-t/);
+  assert.match(source, /<PanelLeftClose size=\{18\} aria-hidden="true" \/>/);
+  assert.match(source, /<PanelLeftOpen size=\{18\} aria-hidden="true" \/>/);
+  assert.match(source, /aria-label=\{sidebarCollapsed \? "Expand sidebar" : "Collapse sidebar"\}/);
+});
+
 test("workspace provisioning does not mint a connection key", () => {
   assert.match(dashboardPageSource, /body: JSON\.stringify\(\{ create_key: false \}\)/);
   assert.match(workspaceRouteSource, /if \(body\.create_key !== false\)/);
