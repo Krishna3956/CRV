@@ -90,6 +90,7 @@ const getCachedToolByName = unstable_cache(
       const result = await supabase
         .from("mcp_tools")
         .select(FIELDS)
+        .in("status", ["approved", "pending"])
         .ilike("github_url", escapedPattern)
         .limit(1)
         .maybeSingle();
@@ -99,6 +100,7 @@ const getCachedToolByName = unstable_cache(
       const result = await supabase
         .from("mcp_tools")
         .select(FIELDS)
+        .in("status", ["approved", "pending"])
         .ilike("repo_name", decoded)
         .limit(1)
         .maybeSingle();
