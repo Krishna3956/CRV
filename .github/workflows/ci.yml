@@ -2,18 +2,14 @@ name: TrackMCP CI
 
 on:
   push:
+    branches:
+      - main
   pull_request:
 
-# A branch push and the corresponding pull_request event can otherwise start
-# two identical full release gates. Keep one authoritative run per ref so
-# hosted-runner capacity is not consumed by duplicate work and stale jobs do
-# not obscure the candidate's real result.
+# Pull requests own their candidate CI run. Only main receives a post-merge
+# push run, so a branch update cannot create a duplicate set of required
+# checks and leave a cancelled check attached to the PR commit.
 concurrency:
-  # Pull-request and push events use different refs; key PR runs by number so
-  # the two event types still collapse to one authoritative candidate.
-  # Push and pull_request events for the same commit must share one group;
-  # using the PR number for one event and the branch ref for the other starts
-  # duplicate release gates and starves the runner pool.
   group: trackmcp-ci-${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 
