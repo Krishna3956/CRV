@@ -9,7 +9,6 @@ import { usePathname } from "next/navigation";
 
 const links = [
   { label: "Features", href: "/features" },
-  { label: "Pricing", href: "/pricing" },
   { label: "Docs", href: "/docs" },
   { label: "Blog", href: "/blog" },
 ];
@@ -31,7 +30,6 @@ export function Nav() {
   const navigationLinks = isChinese
     ? [
         { label: "功能", href: "/features" },
-        { label: "价格", href: "/pricing" },
         { label: "文档", href: "/zh-cn/docs" },
         { label: "博客", href: "/zh-cn/blog" },
       ]
